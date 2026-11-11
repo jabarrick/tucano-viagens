@@ -2,7 +2,7 @@
 
 ![preview](og.png)
 
-**Play / 在线玩 / Jogar:** https://jabarrick.github.io/jabarrick-tucano-viagens/
+**Play / 在线玩 / Jogar:** https://jabarrick.github.io/tucano-viagens/
 
 A browser game set in Brazil, 1992. You are the new phone operator at a (fictional) travel agency in São Paulo: pick up, greet in Portuguese, find out what the caller wants, and sell the right trip before their patience runs out.
 
