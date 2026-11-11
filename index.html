@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alô, Tucano Viagens</title>
+<meta name="description" content="1992 年的巴西旅行社电话接线员游戏 · A 1992 Brazilian travel-agency phone game · Um jogo de atendente de agência de viagens no Brasil de 1992.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Alô, Tucano Viagens! 巴西旅行社电话接线员 · 1992">
+<meta property="og:description" content="接电话、问需求、卖行程。33 个巴西目的地，闯关与无尽模式。中文 / English / Português.">
+<meta property="og:url" content="https://jabarrick.github.io/jabarrick-tucano-viagens/">
+<meta property="og:image" content="https://jabarrick.github.io/jabarrick-tucano-viagens/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: a 1992 call-center desk. Left = live call + wall map of Brazil, right = notepad, weather and exchange slip, price table with postcard thumbnails. Single theme. */
+:root{
+  color-scheme: light;
+  --desk:#0d3b2d; --desk-2:#14503d;
+  --paper:#fbf8ee; --ink:#13251e; --muted:#5d6f66;
+  --sun:#ffcf33; --sky:#1d4ea6;
+  --bad:#d4472b; --good:#1f8a55; --line:#d9d3bf;
+  --rN:#1f8a55; --rNE:#e07b00; --rCO:#a1458f; --rSE:#1d4ea6; --rS:#d4472b;
+  --display:"Bricolage Grotesque","Noto Sans SC",system-ui,sans-serif;
+  --body:"Noto Sans SC",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+html{background:var(--desk)}
+body{background:var(--desk);background-repeat:no-repeat;color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;
+  background-image:radial-gradient(circle at 15% 0%,var(--desk-2),transparent 55%)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.dot:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding:16px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+.hidden{display:none!important}
+.sc{display:block;width:100%;height:auto;border-radius:6px}
+.top{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;color:var(--paper);margin-bottom:14px}
+.brand{font-family:var(--display);font-weight:800;font-size:22px;letter-spacing:-.01em}
+.brand span{color:var(--sun)}
+.stat{display:flex;flex-direction:column;font-size:12px;opacity:.95}
+.stat b{font-family:var(--display);font-size:16px;font-variant-numeric:tabular-nums}
+.goal{flex:1 1 200px;min-width:180px}
+.bar{height:8px;border-radius:99px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:var(--sun);width:0;transition:width .4s}
+.tools{margin-left:auto;display:flex;flex-wrap:wrap;gap:6px}
+.pill{background:none;border:1px solid rgba(255,255,255,.35);color:var(--paper);border-radius:99px;padding:3px 11px;font-size:12px}
+.pill.on{background:var(--sun);color:var(--ink);border-color:var(--sun);font-weight:700}
+.grid{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:900px){.grid{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:start}}
+.panel{background:var(--paper);border-radius:14px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.col{display:grid;gap:14px;min-width:0}
+.eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.caller{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.phone{width:46px;height:46px;border-radius:50%;background:var(--sun);display:grid;place-items:center;font-size:22px;flex:none}
+.phone.ring{animation:ring .5s infinite alternate}
+@keyframes ring{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
+@media(prefers-reduced-motion:reduce){.phone.ring{animation:none}.bar i,.pat i{transition:none}}
+.caller h2{font-size:19px}
+.caller small{color:var(--muted)}
+.pat{height:10px;border-radius:99px;background:#e6e0cc;overflow:hidden}
+.pat i{display:block;height:100%;background:var(--good);transition:width .4s,background .4s}
+.patlab{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin:8px 0 4px}
+.log{display:flex;flex-direction:column;gap:8px;min-height:220px;max-height:44vh;overflow-y:auto;padding:12px 2px;margin-top:8px;border-top:1px dashed var(--line)}
+.msg{max-width:88%;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:#fff}
+.msg.me{align-self:flex-end;background:var(--sun);border-color:transparent}
+.msg.me small{display:block;font-size:12px;opacity:.75}
+.msg.sys{align-self:center;background:none;border:none;color:var(--muted);font-size:13px;text-align:center;padding:2px}
+.msg.sys.warn{color:var(--bad)} .msg.sys.ok{color:var(--good);font-weight:700}
+.post{width:240px;max-width:100%;background:#fff;padding:6px 6px 4px;border:1px solid var(--line);box-shadow:0 3px 10px rgba(0,0,0,.15);transform:rotate(-1.5deg);align-self:center;font-size:12px;text-align:center;color:var(--muted)}
+.acts{display:flex;flex-wrap:wrap;gap:8px;padding-top:12px;border-top:1px dashed var(--line)}
+.btn{background:#fff;border:1.5px solid var(--ink);border-radius:10px;padding:8px 12px;text-align:left;line-height:1.35}
+.btn:hover{background:#fff6cf}
+.btn small{display:block;color:var(--muted);font-size:12px}
+.btn.pri{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:700}
+.btn.pri small{color:#c9d6cf}
+.btn.pri:hover{background:#234236}
+.btn.wide{flex:1 1 100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.tip{flex:1 1 100%;font-size:13px;color:var(--muted);margin:0}
+.notes{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin-top:8px;font-size:14px}
+.notes dt{color:var(--muted)} .notes dd{margin:0;font-weight:500}
+.q{color:#b3ac95}
+.chip{display:inline-block;font-size:12px;border-radius:99px;padding:1px 8px;margin:1px 3px 1px 0;background:#e9efe6;color:#1d4a37}
+.chip.no{background:#fbe2dc;color:var(--bad)}
+.wx{margin-top:10px;padding:8px 10px;border-radius:10px;background:#fff3c4;font-size:13.5px;border-left:4px solid var(--bad);font-variant-numeric:tabular-nums}
+.mapbox{position:relative;margin-top:8px}
+.mapbox>svg{display:block;width:100%;height:auto;max-height:440px}
+.land{fill:#e3ead0;stroke:#7d927f;stroke-width:1.2;stroke-linejoin:round}
+.rl{font-size:11px;fill:#8a9a87;font-family:var(--display);font-weight:800;letter-spacing:.08em;pointer-events:none}
+.dot{cursor:pointer}
+.dot .hit{fill:transparent}
+.dot .pt{stroke:#fff;stroke-width:1.5;transition:r .15s}
+.dot:hover .pt,.dot.hl .pt,.dot:focus .pt{r:8;stroke:var(--ink)}
+.dot.al .ring{fill:none;stroke:var(--bad);stroke-width:1.5;stroke-dasharray:3 2}
+.rN{fill:var(--rN)}.rNE{fill:var(--rNE)}.rCO{fill:var(--rCO)}.rSE{fill:var(--rSE)}.rS{fill:var(--rS)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+#tt{position:absolute;z-index:5;width:230px;background:var(--ink);color:var(--paper);border-radius:10px;padding:8px 10px 9px;font-size:12.5px;line-height:1.45;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+#tt b{font-family:var(--display);font-size:14.5px;display:block;margin-top:5px}
+#tt span{opacity:.8}
+.filt{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.filt button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:2px 10px;font-size:12.5px}
+.filt button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.cat{display:grid;gap:7px;margin-top:10px;max-height:78vh;overflow-y:auto;padding-right:4px}
+.pk{display:grid;grid-template-columns:76px 1fr auto;gap:2px 10px;border:1px solid var(--line);border-left:5px solid var(--line);border-radius:10px;padding:7px 9px;background:#fff;align-items:start}
+.pk .th{grid-row:1/4}
+.pk.flash{background:#fff3c4}
+.pk h3{font-size:15px}
+.pk h3 span{font-family:var(--body);font-weight:400;font-size:12.5px;color:var(--muted);display:block}
+.pk .meta{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;grid-column:2/4}
+.pk .meta b{color:var(--ink)}
+.pk .cl{grid-column:2/4;font-size:12px;color:var(--muted)}
+.pk .cl .x{color:var(--bad)} .pk .cl .g{color:var(--good);font-weight:700}
+.pk button{grid-column:3;grid-row:1;background:var(--sky);color:#fff;border:none;border-radius:8px;padding:6px 11px;font-weight:700}
+.pk button:disabled{background:#c9c6ba;cursor:not-allowed}
+.pk.tried{opacity:.5}
+.screen{max-width:760px;margin:3vh auto}
+.screen h1{font-size:clamp(30px,6vw,46px);line-height:1.05;letter-spacing:-.02em;margin:6px 0 10px}
+.screen h1 em{font-style:normal;background:var(--sun);padding:0 .15em;border-radius:6px}
+.screen p,.screen li{max-width:66ch}
+.screen ul{padding-left:1.2em}
+.langs{display:flex;gap:6px;float:right}
+.langs button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:2px 12px;font-size:13px}
+.langs button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:14px}
+.lvs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:14px 0}
+.lv{background:#fff;border:1.5px solid var(--ink);border-radius:12px;padding:10px 12px;text-align:left}
+.lv b{font-family:var(--display);font-size:18px;display:block}
+.lv:hover:not(:disabled){background:#fff6cf}
+.lv:disabled{opacity:.4;cursor:not-allowed}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+td.n,th.n{text-align:right}
+.big{font-family:var(--display);font-size:34px;font-weight:800}
+.stars{color:#e0a400;letter-spacing:1px}
+.row{display:flex;flex-wrap:wrap;gap:22px;margin:14px 0}
+
+.post{position:relative}
+.stamp{position:absolute;right:8px;top:10px;border:3px solid var(--bad);color:var(--bad);font-family:var(--display);font-weight:800;font-size:18px;padding:0 8px;border-radius:6px;transform:rotate(12deg);background:rgba(255,255,255,.78);animation:stamp .35s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes stamp{from{transform:rotate(12deg) scale(2.4);opacity:0}to{transform:rotate(12deg) scale(1);opacity:1}}
+.pop{animation:pop .5s}
+@keyframes pop{30%{transform:scale(1.35);color:var(--sun)}}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.pk.hinted{outline:3px solid var(--sun);outline-offset:-1px}
+.btn.help{border-style:dashed;background:#fff9df}
+#toasts{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;z-index:20;pointer-events:none;width:min(92vw,360px)}
+.toast{background:var(--ink);color:var(--paper);border-left:5px solid var(--sun);border-radius:10px;padding:8px 12px;font-size:14px;box-shadow:0 6px 18px rgba(0,0,0,.35);animation:toast 3.4s both}
+@keyframes toast{0%{opacity:0;transform:translateY(10px)}8%,85%{opacity:1;transform:none}100%{opacity:0}}
+.alb{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin:12px 0}
+.alb figure{margin:0;background:#fff;padding:5px;border:1px solid var(--line);font-size:12px;text-align:center}
+.alb figure.no .sc{filter:grayscale(1) contrast(.5) brightness(1.3);opacity:.5}
+.alb figure.no figcaption{color:#b3ac95}
+.achs{list-style:none;padding:0;display:grid;gap:4px}
+.achs li{padding:5px 8px;border-radius:8px;background:#fff;border:1px solid var(--line);font-size:13.5px;max-width:none}
+.achs li.no{opacity:.5}
+@media(prefers-reduced-motion:reduce){.stamp,.pop,.shake{animation:none}}
+.dl{border:1px solid var(--ink);background:#fff;border-radius:99px;padding:1px 10px;font-size:12px;margin-top:3px;color:var(--ink)}
+.dl:hover{background:#fff6cf}
+.tabs{display:none}
+#patTop{display:none}
+details#how summary{cursor:pointer;font-weight:700;margin-top:14px}
+/* phone: one screen, no page scroll. Status row, patience, notes, then one of three tabs fills the rest. */
+@media(max-width:760px){
+  html,body{height:100%}
+  .wrap{height:100%;padding:8px}
+  .screen{margin:0}
+  .strip{grid-template-columns:repeat(4,1fr);margin:8px 0}
+  #game{height:100%;display:flex;flex-direction:column;gap:6px}
+  .top{margin:0;gap:4px 10px;flex-wrap:nowrap;align-items:flex-end}
+  .brand,.stat.com,.stat.rep,#snd{display:none}#langs2{display:none!important}
+  .goal>span{overflow:hidden;text-overflow:ellipsis}.tools{margin-left:0}
+  .stat{font-size:10.5px;white-space:nowrap}.stat b{font-size:13.5px}
+  .goal{min-width:0;flex:1 1 auto}
+  .pill{padding:3px 9px}
+  #patTop{display:block;height:6px;flex:none;background:rgba(255,255,255,.18)}
+  .grid,.col{display:contents}
+  .panel{padding:10px;border-radius:12px;box-shadow:none}
+  .p-notes{order:1;padding:7px 10px;flex:none}
+  .p-notes .eyebrow{display:none}
+  .notes{display:flex;flex-wrap:wrap;gap:1px 10px;margin:0;font-size:12.5px}
+  .notes dt::after{content:":"}.notes dt{margin-right:-6px}
+  .wx{margin-top:5px;padding:3px 8px;font-size:11.5px;line-height:1.35}
+  .p-call,.p-cat,.p-map{order:2;flex:1 1 0;min-height:0;display:none;flex-direction:column}
+  #game[data-tab=call] .p-call,#game[data-tab=cat] .p-cat,#game[data-tab=map] .p-map{display:flex}
+  .caller{margin-bottom:2px;gap:8px}.phone{width:32px;height:32px;font-size:16px}.caller h2{font-size:15.5px}.caller small{font-size:11.5px}
+  #patBox{display:none}
+  .log{flex:1 1 0;min-height:0;max-height:none;margin-top:4px;padding:8px 2px;gap:6px}
+  .msg{padding:6px 10px;font-size:14px;line-height:1.45}
+  .post{width:170px}
+  .acts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding-top:8px}
+  .tip,.btn.wide{grid-column:1/-1}.tip{font-size:12px}
+  .btn{padding:6px 8px;font-size:13.5px}.btn small{font-size:11px}
+  .p-cat .tip{display:none}
+  .filt{margin-top:0;flex:none}
+  .cat{flex:1 1 0;min-height:0;max-height:none;margin-top:8px}
+  .pk{grid-template-columns:54px 1fr auto;padding:6px 8px}
+  .mapbox{flex:1 1 0;min-height:0;margin-top:4px}.mapbox>svg{height:100%;max-height:none}
+  .tabs{order:9;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;flex:none}
+  .tabs button{background:rgba(255,255,255,.12);color:var(--paper);border:none;border-radius:10px;padding:9px 4px;font-weight:700;font-size:14px}
+  .tabs button.on{background:var(--sun);color:var(--ink)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<section id="menu" class="panel screen">
+  <div class="langs" id="langs1"></div>
+  <div class="eyebrow" data-u="sub"></div>
+  <h1>Alô, <em>Tucano Viagens</em>!</h1>
+  <p data-u="intro"></p>
+  <div class="strip" id="strip"></div>
+  <details id="how"><summary data-u="how"></summary><ul><li data-u="r1"></li><li data-u="r2"></li><li data-u="r3"></li><li data-u="r4"></li><li data-u="r5"></li><li data-u="r6"></li></ul></details>
+  <div class="modes">
+    <button class="btn pri" id="bCamp"><span data-u="camp"></span><small data-u="campSub"></small></button>
+    <button class="btn pri" id="bEnd"><span data-u="endl"></span><small data-u="endlSub"></small></button>
+  </div>
+  <div class="modes"><button class="btn" id="bAlb"><span data-u="album"></span><small id="albN"></small></button></div>
+  <p id="bestLine" style="color:var(--muted);font-size:13px"></p>
+</section>
+
+<section id="levels" class="panel screen hidden">
+  <div class="eyebrow">1992</div>
+  <h1 data-u="pickLv"></h1>
+  <div class="lvs" id="lvs"></div>
+  <div class="acts"><button class="btn" id="bBack" data-u="back"></button></div>
+</section>
+
+<section id="album" class="panel screen hidden"></section>
+
+<section id="game" class="hidden">
+  <div class="top">
+    <div class="brand">Tucano <span>Viagens</span></div>
+    <div class="stat"><span id="hModeL"></span><b id="hMode"></b></div>
+    <div class="stat"><span data-u="clock"></span><b id="hClock">09:00</b></div>
+    <div class="stat goal"><span><span id="hRevL"></span> <b id="hRev"></b><span id="hTar"></span></span><div class="bar" id="hBarBox"><i id="hBar"></i></div></div>
+    <div class="stat com"><span data-u="com"></span><b id="hCom"></b></div>
+    <div class="stat rep"><span data-u="rep"></span><b id="hStar" class="stars">—</b></div>
+    <div class="stat" id="hLivesBox"><span data-u="lives"></span><b id="hLives" style="color:#ff8f7a"></b></div>
+    <div class="stat hidden" id="hComboBox"><span data-u="streak"></span><b id="hCombo" style="color:var(--sun)"></b></div>
+    <div class="tools"><span id="langs2" style="display:flex;gap:6px"></span><button class="pill" id="snd"></button><button class="pill" id="bMenu" data-u="menu"></button></div>
+  </div>
+  <div class="pat" id="patTop"><i id="patI2" style="width:100%"></i></div>
+  <div class="grid">
+    <div class="col">
+      <div class="panel p-call">
+        <div class="caller">
+          <div class="phone" id="ph">☎</div>
+          <div><h2 id="cName">—</h2><small id="cSub"></small></div>
+        </div>
+        <div id="patBox">
+          <div class="patlab"><span data-u="pat"></span><span id="patN">100%</span></div>
+          <div class="pat"><i id="patI" style="width:100%"></i></div>
+        </div>
+        <div class="log" id="log" aria-live="polite"></div>
+        <div class="acts" id="acts"></div>
+      </div>
+      <div class="panel p-map">
+        <div class="eyebrow" data-u="mapT"></div>
+        <div class="mapbox" id="mapbox"><svg id="map" viewBox="0 0 440 400" role="img" aria-label="Mapa do Brasil"></svg><div id="tt" class="hidden"></div></div>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="panel p-notes">
+        <div class="eyebrow" data-u="notesT"></div>
+        <dl class="notes" id="notes"></dl>
+        <div class="wx" id="wx"></div>
+      </div>
+      <div class="panel p-cat">
+        <div class="eyebrow" data-u="catT"></div>
+        <p class="tip" data-u="priceRule" style="margin:8px 0 0"></p>
+        <div class="filt" id="filt"></div>
+        <div class="cat" id="cat"></div>
+      </div>
+    </div>
+  </div>
+  <div class="tabs" id="tabs"><button data-tab="call" data-u="tCall"></button><button data-tab="cat" data-u="tCat"></button><button data-tab="map" data-u="tMap"></button></div>
+</section>
+
+<section id="sum" class="panel screen hidden"></section>
+<div id="toasts" aria-live="polite"></div>
+</div>
+
+<script>
+const TAGS={praia:['海滩','Beach','Praia'],nat:['自然','Nature','Natureza'],cult:['文化','Culture','Cultura'],festa:['派对','Party','Festa'],avent:['探险','Adventure','Aventura'],gastro:['美食','Food','Gastronomia'],fam:['亲子','Family','Família'],rom:['浪漫','Romance','Romance']};
+const REG={N:['北部','North','Norte'],NE:['东北部','Northeast','Nordeste'],CO:['中西部','Centre-West','Centro-Oeste'],SE:['东南部','Southeast','Sudeste'],S:['南部','South','Sul']};
+const ALERT={N:['河水暴涨','river flooding','cheia dos rios'],NE:['强降雨','torrential rain','chuvas fortes'],CO:['山火浓烟','wildfire smoke','fumaça de queimadas'],SE:['暴雨洪涝','storms and flooding','temporais'],S:['寒潮大风','a cold front with gales','frente fria com vendaval']};
+const CONS={noHard:['不能爬山徒步','no hard hiking','sem trilha pesada'],noBoat:['不坐船','no boats','sem barco'],noRain:['怕下雨','hates rain','foge de chuva'],noCold:['怕冷','hates cold','foge do frio'],noHot:['怕热','hates heat','foge do calor']};
+const MEN='January February March April May June July August September October November December'.split(' ');
+const MPT='janeiro fevereiro março abril maio junho julho agosto setembro outubro novembro dezembro'.split(' ');
+const mon=m=>[m+' 月',MEN[m-1],MPT[m-1]];
+const monS=m=>[m,MEN[m-1].slice(0,3),MPT[m-1].slice(0,3)];
+// id,name,[zh,en],reg,lon,lat,days,US$,tags,{rain,cold,hot,bad,badTxt,hard,boat},acts[[pt,zh,en,US$,tag]]
+const PK=[
+['rio','Rio de Janeiro',['里约经典','Classic Rio'],'SE',-43.2,-22.9,5,480,'praia festa cult',{rain:[12,1,2,3],hot:[1,2]},[['Voo de asa-delta','滑翔翼飞越里约','Hang-gliding over Rio',100,'avent'],['Noite de samba na Lapa','拉帕区桑巴之夜','Samba night in Lapa',35,'festa']]],
+['ssa','Salvador da Bahia',['萨尔瓦多老城与海岸','Old Salvador and the coast'],'NE',-38.5,-13,5,420,'cult gastro praia festa',{rain:[4,5,6,7]},[['Aula de culinária baiana','巴伊亚烹饪课','Bahian cooking class',30,'gastro'],['Roda de capoeira','卡波耶拉体验','Capoeira circle',20,'cult']]],
+['foz','Foz do Iguaçu',['伊瓜苏瀑布','Iguaçu Falls'],'S',-54.6,-25.6,4,380,'nat fam',{cold:[6,7]},[['Macuco Safari','瀑布下快艇','Speedboat under the falls',65,'avent'],['Visita a Itaipu','伊泰普大坝参观','Itaipu dam visit',20,'fam']]],
+['ama','Amazônia · Manaus',['亚马逊雨林游船','Amazon riverboat'],'N',-60,-3.1,6,760,'nat avent',{rain:[1,2,3,4,5],hot:[9,10],boat:1},[['Focagem de jacarés','夜观凯门鳄','Caiman spotting by night',30,'avent'],['Encontro das Águas','两河交汇游船','Meeting of the Waters cruise',45,'nat']]],
+['nor','Fernando de Noronha',['诺罗尼亚群岛','Noronha archipelago'],'NE',-32.4,-3.85,6,1300,'praia rom nat',{bad:[3,4,5,6],badTxt:['3–6 月雨季，海水浑浊','March to June is the rainy season and the sea turns murky','de março a junho chove e o mar fica turvo']},[['Mergulho com cilindro','水肺潜水','Scuba dive',95,'avent'],['Pôr do sol de barco','日落游船','Sunset boat trip',50,'rom']]],
+['pan','Pantanal',['潘塔纳尔湿地野生动物','Pantanal wildlife'],'CO',-56.9,-17.6,5,680,'nat avent',{bad:[12,1,2,3],badTxt:['12–3 月洪水期，路都淹了','December to March is flood season and the roads are under water','de dezembro a março é cheia e as estradas alagam'],hot:[9,10]},[['Safári de onça','美洲豹追踪船','Jaguar-tracking boat',130,'nat'],['Cavalgada pantaneira','湿地骑马','Wetland horse ride',40,'avent']]],
+['len','Lençóis Maranhenses',['千湖沙漠','Dunes and lagoons'],'NE',-43.1,-2.5,5,580,'nat avent rom',{bad:[11,12,1,2],badTxt:['11–2 月潟湖全干了','the lagoons are bone dry from November to February','de novembro a fevereiro as lagoas secam'],rain:[3,4,5]},[['Sobrevoo das lagoas','小飞机俯瞰千湖','Scenic flight over the lagoons',85,'rom'],['Travessia a pé','沙丘徒步穿越','Dune crossing on foot',60,'avent']]],
+['flo','Florianópolis',['弗洛里亚诺波利斯海岛','Island of Florianópolis'],'S',-48.5,-27.7,5,400,'praia festa fam',{cold:[6,7,8]},[['Aula de surfe','冲浪课','Surf lesson',35,'avent'],['Ostras em Ribeirão da Ilha','生蚝之旅','Oyster lunch',30,'gastro']]],
+['ouro','Ouro Preto e Minas',['欧鲁普雷图与米纳斯古镇','Ouro Preto and colonial Minas'],'SE',-43.5,-20.4,4,300,'cult gastro',{rain:[12,1]},[['Mina de ouro da Passagem','金矿探访','Old gold mine',25,'avent'],['Rota do queijo e cachaça','奶酪与甘蔗酒之路','Cheese and cachaça trail',30,'gastro']]],
+['bon','Bonito',['博尼图清溪浮潜','Crystal rivers of Bonito'],'CO',-56.5,-21.1,5,620,'nat avent fam',{rain:[12,1,2]},[['Gruta do Lago Azul','蓝湖洞','Blue Lake cave',40,'nat'],['Flutuação no Rio Sucuri','清溪漂流浮潜','River snorkelling float',50,'avent']]],
+['cha','Chapada Diamantina',['钻石高原徒步','Chapada Diamantina trek'],'NE',-41.4,-12.6,6,520,'avent nat',{rain:[11,12,1],hard:1},[['Poço Encantado','魔法井洞穴','Enchanted Well cave',35,'nat'],['Trilha da Fumaça','烟雾瀑布徒步','Fumaça waterfall trail',30,'avent']]],
+['gra','Gramado e Vale dos Vinhedos',['格拉马杜与葡萄酒谷','Gramado and wine valley'],'S',-51,-29.5,4,440,'rom gastro fam',{cold:[6,7,8]},[['Vinícolas de Bento Gonçalves','酒庄品酒','Winery tasting',40,'rom'],['Noite de fondue','芝士火锅之夜','Fondue night',30,'gastro']]],
+['sp','São Paulo Gourmet',['圣保罗美食周末','São Paulo food weekend'],'SE',-46.7,-23.6,3,260,'gastro cult festa',{rain:[1,2]},[['Tour do Mercadão','市立市场美食导览','Municipal market food tour',25,'gastro'],['Noite na Vila Madalena','酒吧街之夜','Bar night in Vila Madalena',30,'festa']]],
+['jeri','Jericoacoara',['杰里沙丘渔村','Dune village of Jeri'],'NE',-40.5,-2.8,6,600,'praia rom avent',{rain:[3,4]},[['Aula de windsurfe','帆板课','Windsurf lesson',75,'avent'],['Pôr do sol a cavalo','骑马看沙丘日落','Sunset ride on the dunes',40,'rom']]],
+['pty','Paraty e Ilha Grande',['帕拉蒂古镇与大岛','Paraty and Ilha Grande'],'SE',-44.7,-23.2,4,360,'praia cult rom',{rain:[12,1,2,3],boat:1},[['Passeio de escuna','双桅船跳岛','Schooner island-hopping',40,'praia'],['Alambiques de cachaça','甘蔗酒坊','Cachaça distilleries',25,'gastro']]],
+['buz','Búzios',['布济乌斯半岛','Búzios peninsula'],'SE',-41.9,-22.75,4,460,'praia rom festa',{rain:[12,1]},[['Passeio de barco','三海滩游船','Three-beach boat trip',30,'praia'],['Jantar na Rua das Pedras','石头街晚餐','Dinner on Rua das Pedras',50,'rom']]],
+['pdg','Porto de Galinhas e Olinda',['鸡港海滩与奥林达','Porto de Galinhas and Olinda'],'NE',-35,-8.3,5,500,'praia fam cult',{rain:[5,6,7]},[['Jangada nas piscinas naturais','帆筏游天然泳池','Raft to the reef pools',20,'fam'],['Frevo em Olinda','奥林达弗雷沃舞','Frevo in Olinda',25,'cult']]],
+['nat','Natal e Pipa',['纳塔尔与皮帕','Natal and Pipa'],'NE',-35.2,-5.9,5,460,'praia avent fam',{rain:[4,5,6,7]},[['Buggy nas dunas de Genipabu','沙丘越野车','Dune buggy at Genipabu',50,'avent'],['Golfinhos em Pipa','皮帕看海豚','Dolphins at Pipa',30,'fam']]],
+['mar','Maragogi',['马拉戈日珊瑚海岸','Coral coast of Maragogi'],'NE',-35.5,-9.4,5,540,'praia rom fam',{rain:[5,6,7]},[['Galés de Maragogi','珊瑚天然泳池','Reef pools by boat',35,'praia'],['Jantar pé na areia','沙滩烛光晚餐','Candlelit dinner on the sand',50,'rom']]],
+['jal','Expedição Jalapão',['雅拉庞越野远征','Jalapão 4x4 expedition'],'N',-46.6,-10.5,6,720,'avent nat',{bad:[12,1,2,3],badTxt:['12–3 月雨季，土路泥泞封闭','December to March rains turn the dirt tracks to mud','de dezembro a março a chuva fecha as estradas de terra'],hot:[8,9],hard:1},[['Fervedouros','沸泉漂浮','Bubbling springs',30,'nat'],['Rafting no Rio Novo','新河漂流','Rafting on the Rio Novo',65,'avent']]],
+['vea','Chapada dos Veadeiros',['维阿迪罗斯高原瀑布','Veadeiros plateau waterfalls'],'CO',-47.5,-14.1,5,480,'nat avent',{rain:[11,12,1,2,3]},[['Vale da Lua','月亮谷','Valley of the Moon',20,'nat'],['Saltos do Rio Preto','黑河瀑布徒步','Rio Preto falls hike',45,'avent']]],
+['bsb','Brasília',['巴西利亚现代建筑','Modernist Brasília'],'CO',-47.9,-15.8,3,280,'cult gastro',{rain:[11,12,1,2]},[['Tour Niemeyer','尼迈耶建筑导览','Niemeyer architecture tour',25,'cult'],['Jantar à beira do lago','湖畔晚餐','Lakeside dinner',40,'gastro']]],
+['bel','Belém e Ilha de Marajó',['贝伦与马拉若岛','Belém and Marajó island'],'N',-48.5,-1.4,5,520,'cult gastro nat',{rain:[1,2,3,4],boat:1},[['Ver-o-Peso gastronômico','大市场美食之旅','Ver-o-Peso market tasting',30,'gastro'],['Búfalos de Marajó','马拉若岛骑水牛','Buffalo ride on Marajó',40,'nat']]],
+['alt','Alter do Chão',['阿尔特杜尚河滩','River beaches of Alter do Chão'],'N',-54.9,-2.5,5,640,'praia nat rom',{bad:[3,4,5,6],badTxt:['3–6 月河水上涨，沙滩全被淹没','the river rises from March to June and swallows the beaches','de março a junho o rio sobe e cobre as praias'],rain:[1,2],boat:1},[['Canal do Jari','雨林水道独木舟','Canoe through the flooded forest',35,'nat'],['Pôr do sol na Ponta do Cururu','沙洲日落','Sunset on the sandbar',30,'rom']]],
+['cwb','Curitiba e Serra do Mar',['库里蒂巴与山海小火车','Curitiba and the mountain railway'],'S',-49.3,-25.4,3,240,'cult gastro fam',{cold:[6,7,8]},[['Trem para Morretes','山海小火车','Train to Morretes',50,'fam'],['Barreado em Morretes','炖牛肉午餐','Barreado stew lunch',20,'gastro']]],
+['bc','Camboriú e Beto Carrero',['坎博里乌与新开的游乐园','Camboriú and the new theme park'],'S',-48.7,-26.8,4,420,'fam festa praia',{cold:[6,7,8]},[['Beto Carrero World','游乐园一日通票','Theme park day pass',60,'fam'],['Passeio de escuna','海盗船出海','Schooner cruise',30,'praia']]],
+['can','Cânions do Sul',['南部大峡谷','Southern canyons'],'S',-49.9,-28.9,4,400,'nat avent',{cold:[6,7,8],rain:[9,10]},[['Cavalgada nos campos','高原骑马','Highland horse ride',45,'rom'],['Trilha do Rio do Boi','峡谷涉溪徒步','Canyon river trail',50,'avent']]],
+['ror','Monte Roraima',['罗赖马平顶山远征','Mount Roraima expedition'],'N',-60.8,4.9,8,1040,'avent nat',{rain:[5,6,7,8],hard:1},[['Carregador extra','加雇背夫','Extra porter',80,'avent'],['Sobrevoo do tepui','小飞机环飞平顶山','Flight around the tepui',240,'nat']]],
+['tra','Trancoso e Porto Seguro',['特兰科苏与塞古鲁港','Trancoso and Porto Seguro'],'NE',-39.1,-16.5,5,660,'praia rom festa',{rain:[11,12]},[['Jantar no Quadrado','方场烛光晚餐','Dinner on the Quadrado',55,'rom'],['Noite de lambada','兰巴达舞之夜','Lambada night',30,'festa']]],
+['cdj','Campos do Jordão',['坎普斯杜若尔当山城','Mountain town of Campos do Jordão'],'SE',-45.6,-22.6,3,380,'rom gastro',{cold:[6,7],rain:[12,1,2]},[['Fondue e chocolate','火锅与巧克力','Fondue and chocolate',35,'gastro'],['Passeio a cavalo','松林骑马','Ride through the pines',30,'rom']]],
+['par','Festival de Parintins',['帕林廷斯红蓝牛节','Parintins ox festival'],'N',-56.7,-2.7,4,700,'festa cult',{bad:[7,8,9,10,11,12,1,2,3,4,5],badTxt:['红蓝牛节只在 6 月举办','the festival only happens in June','o festival só acontece em junho'],boat:1},[['Camarote no Bumbódromo','红蓝对决看台包厢','Box seat at the Bumbódromo',90,'festa'],['Oficina de alegorias','花车工坊','Float-makers’ workshop',25,'cult']]],
+['abr','Abrolhos',['阿布罗柳斯观鲸','Whale-watching at Abrolhos'],'NE',-39.2,-17.9,4,680,'nat avent',{bad:[11,12,1,2,3,4,5,6],badTxt:['座头鲸只在 7–10 月出现','the humpback whales only come from July to October','as baleias jubarte só aparecem de julho a outubro'],boat:1},[['Mergulho nos recifes','珊瑚礁潜水','Reef dive',75,'avent'],['Pernoite a bordo','船上过夜','Overnight on board',85,'nat']]],
+['cap','Capitólio',['卡皮托留峡谷湖','Canyon lake of Capitólio'],'SE',-46,-20.6,3,300,'nat avent fam',{rain:[12,1,2],boat:1},[['Lancha nos cânions','峡谷快艇','Speedboat through the canyons',35,'nat'],['Cachoeira Lagoa Azul','蓝湖瀑布','Blue Lagoon waterfall',20,'fam']]]
+].map(a=>Object.assign({id:a[0],name:a[1],desc:[a[2][0],a[2][1],''],reg:a[3],lon:a[4],lat:a[5],days:a[6],price:a[7],tags:a[8].split(' '),rain:[],cold:[],hot:[],bad:[],acts:a[10].map(x=>({n:[x[1],x[2],x[0]],pt:x[0],p:x[3],tag:x[4]}))},a[9]));
+const PKI={};PK.forEach(p=>PKI[p.id]=p);
+
+// simplified outline of Brazil, [lon,lat], clockwise from Oiapoque
+const BR=[[-51.6,4.4],[-51.1,3.9],[-50,1.8],[-49.9,.3],[-48.4,-.2],[-47.8,-.6],[-46,-1],[-44.6,-1.8],[-44.2,-2.6],[-42,-2.8],[-40.5,-2.8],[-38.5,-3.7],[-37.2,-4.8],[-35.3,-5.2],[-34.8,-7.1],[-34.9,-8.1],[-35.7,-9.7],[-37,-11],[-38.5,-13],[-39,-14.8],[-39.1,-16.4],[-39.2,-17.9],[-39.7,-19.6],[-40.3,-20.3],[-41,-22],[-42,-23],[-43.2,-23],[-44.7,-23.3],[-46.3,-24],[-47.9,-25],[-48.5,-25.6],[-48.5,-27.6],[-48.8,-28.6],[-49.7,-29.3],[-50.3,-30.5],[-52.1,-32.1],[-53.4,-33.7],[-53.4,-32.6],[-54.1,-31.9],[-55.5,-30.9],[-56.5,-30.4],[-57.6,-30.2],[-57.1,-29.8],[-56,-28.7],[-55,-27.8],[-53.8,-27.2],[-53.6,-26.3],[-54.6,-25.6],[-54.3,-24.1],[-55.4,-23.9],[-55.7,-22.5],[-57,-22.2],[-57.9,-22.1],[-58,-20.2],[-57.7,-19],[-57.5,-18.2],[-58.4,-17.2],[-58.4,-16.3],[-60.2,-16.3],[-60.5,-13.8],[-62,-13.1],[-63.5,-12.5],[-65,-11.9],[-65.3,-10.8],[-65.4,-9.7],[-66.6,-9.9],[-68.7,-11],[-70.6,-11],[-70.6,-9.5],[-72.2,-10],[-73.2,-9.4],[-74,-7.4],[-73.7,-6.9],[-73.1,-6],[-72.9,-5.1],[-71.9,-4.6],[-70.9,-4.4],[-69.9,-4.2],[-69.4,-1.1],[-70,.55],[-69.1,.65],[-69.85,1.1],[-69.85,1.7],[-67.9,1.75],[-67.1,1.2],[-65.5,.8],[-64,1.9],[-63.4,2.4],[-64.2,4.1],[-62.7,4],[-61,4.5],[-60.7,5.2],[-60,5.1],[-59.8,3.6],[-59.9,2.3],[-59,1.3],[-58,1.5],[-57.3,1.9],[-56.5,1.9],[-55.9,2.5],[-54.6,2.3],[-53,2.2],[-52.6,2.6],[-51.7,4]];
+const RLAB=[['NORTE',-64.5,-6.5],['NORDESTE',-44.5,-8.2],['CENTRO-OESTE',-56.8,-13.4],['SUDESTE',-46.2,-18.6],['SUL',-53.6,-28.2]];
+
+/* postcard illustrations, 160x100 */
+const scene=(()=>{
+const R=(x,y,w,h,f,o)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${f}"${o||''}/>`;
+const P=(d,f,o)=>`<path d="${d}" fill="${f}"${o||''}/>`;
+const O=(x,y,r,f,o)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${f}"${o||''}/>`;
+const E=(x,y,rx,ry,f,o)=>`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${f}"${o||''}/>`;
+const BL=['#6ec3ee','#d8f1ff'],SS=['#ff9a5a','#ffe0a6'];
+const sky=(id,c)=>`<defs><linearGradient id="k${id}" x2="0" y2="1"><stop offset="0" stop-color="${c[0]}"/><stop offset="1" stop-color="${c[1]}"/></linearGradient></defs><rect width="160" height="100" fill="url(#k${id})"/>`;
+const sun=(x,y,f='#fff6c2')=>O(x,y,15,f,' opacity=".35"')+O(x,y,9,f);
+const sea=(y,f='#1b86b8')=>R(0,y,160,100-y,f)+`<path d="M8 ${y+7}h22M60 ${y+12}h30M112 ${y+6}h26M30 ${y+20}h28M96 ${y+24}h34" stroke="#fff" stroke-opacity=".45" stroke-width="1.4" fill="none" stroke-linecap="round"/>`;
+const sand=(y,f='#f3e2ad')=>P(`M0 ${y+6}Q50 ${y-6} 100 ${y+3}T160 ${y}V100H0Z`,f);
+const hill=(y,f,a=14,ph=0)=>{let d=`M0 100V${y}`;for(let x=0;x<=160;x+=8)d+=`L${x} ${(y-a*Math.abs(Math.sin(x/23+ph))-a*.4*Math.sin(x/9+ph*2)).toFixed(1)}`;return P(d+'V100Z',f)};
+const palm=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})"><path d="M0 0Q3 -14 1 -26" stroke="#6b4a2b" stroke-width="2.2" fill="none"/><path d="M1 -26q-9 -5 -15 1M1 -26q-7 -9 -13 -9M1 -26q1 -10 -3 -14M1 -26q8 -8 14 -6M1 -26q10 -3 15 3" stroke="#1f7a3f" stroke-width="2.4" fill="none" stroke-linecap="round"/></g>`;
+const church=(x,y,f='#fff8e6',r='#b5432c')=>`<g transform="translate(${x} ${y})">`+R(-12,-18,24,18,f)+R(-16,-28,8,28,f)+R(8,-28,8,28,f)+P('M-17 -28l5 -9l5 9zM7 -28l5 -9l5 9zM-8 -18l8 -8l8 8z',r)+R(-3,-9,6,9,'#6b4a2b')+O(0,-14,1.8,'#6b4a2b')+'</g>';
+const house=(x,y,f,r='#b5432c')=>R(x,y-11,15,11,f)+P(`M${x-2} ${y-11}l9.5 -7l9.5 7z`,r)+R(x+5.5,y-6,4,6,'#6b4a2b');
+const trees=(y,f='#1f6b3a',r=9)=>{let s='';for(let x=-4;x<170;x+=r*1.5)s+=O(x,y+((x*7)%5),r,f);return s+R(0,y,160,100-y,f)};
+const boat=(x,y,f='#b5432c',sail)=>`<g transform="translate(${x} ${y})">`+P('M-14 0h28l-5 6h-18z',f)+(sail?P('M0 -1v-20l12 18z','#fff')+P('M-2 -1v-15l-9 13z','#ffe9a8'):R(-9,-6,18,6,'#fff')+R(-6,-11,12,5,'#fff')+R(-1,-15,2,4,'#333'))+'</g>';
+const tepui=(x,w,y,h,f='#8a6a4a')=>P(`M${x} ${y}l${w*.08} ${-h}h${w*.84}l${w*.08} ${h}z`,f)+`<path d="M${x+w*.25} ${y-h}v${h}M${x+w*.5} ${y-h}v${h}M${x+w*.72} ${y-h}v${h}" stroke="#000" stroke-opacity=".15" stroke-width="2"/>`+R(x+w*.08,y-h-2,w*.84,3,'#3f8a4c');
+const dune=(y,f,g)=>P(`M0 ${y}Q40 ${y-22} 80 ${y-4}T160 ${y-10}V100H0Z`,f)+P(`M0 ${y+14}Q50 ${y-6} 110 ${y+12}T160 ${y+8}V100H0Z`,g);
+const canyon=(f='#9b6b43')=>P('M0 20L50 28L66 100H0Z',f)+P('M160 16L104 30L92 100H160Z',f)+P('M0 20L50 28L46 34L0 28ZM160 16L104 30L108 36L160 24Z','#3f8a4c')+P('M66 100L78 56L84 56L92 100Z','#4aa3c7');
+const pine=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})">`+R(-1.5,-4,3,6,'#6b4a2b')+P('M-9 -3L0 -16L9 -3ZM-7 -10L0 -22L7 -10ZM-5 -17L0 -27L5 -17Z','#1d5c3a')+'</g>';
+const chalet=(x,y)=>`<g transform="translate(${x} ${y})">`+R(-12,-12,24,12,'#f6ead0')+P('M-16 -11L0 -27L16 -11Z','#8c3b2a')+R(-3,-8,6,8,'#6b4a2b')+R(-10,-9,5,4,'#7fb6d6')+R(5,-9,5,4,'#7fb6d6')+'</g>';
+const rock=(x,y,w,h,f='#3b5d4a')=>P(`M${x} ${y}Q${x+w*.3} ${y-h*1.2} ${x+w*.55} ${y-h}Q${x+w*.9} ${y-h*.5} ${x+w} ${y}Z`,f);
+const birds=(x,y,c='#fff')=>`<path d="M${x} ${y}q4 -5 8 0q4 -5 8 0M${x+22} ${y-9}q3 -4 6 0q3 -4 6 0M${x-14} ${y-12}q3 -4 6 0q3 -4 6 0" stroke="${c}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+const cloud=(x,y,s=1)=>E(x,y,16*s,5*s,'#fff',' opacity=".85"')+E(x+10*s,y-4*s,10*s,5*s,'#fff',' opacity=".85"');
+const S={
+rio:()=>sky('rio',SS)+sun(120,30)+P('M62 68Q72 26 88 30Q102 36 106 68Z','#3b5d4a')+P('M100 68Q112 46 126 68Z','#3b5d4a')+sea(66)+sand(86)+palm(24,94),
+ssa:()=>sky('ssa',BL)+sea(70)+R(0,60,160,12,'#c98d5a')+church(52,62)+church(108,62,'#ffe08a','#1d4ea6')+house(74,62,'#f6a6b2')+house(128,62,'#9fd6c4')+house(14,62,'#ffd36b')+palm(148,98),
+foz:()=>sky('foz',BL)+R(0,30,160,34,'#7a5a3c')+R(0,26,160,8,'#2f7d46')+[14,30,44,70,86,100,128,142].map(x=>R(x,32,9,40,'#fff',' opacity=".9"')).join('')+R(0,66,160,34,'#3d8fb0')+E(80,68,80,7,'#fff',' opacity=".7"')+birds(60,16,'#22323f'),
+ama:()=>sky('ama',SS)+sun(40,28)+trees(48,'#14532d')+R(0,62,160,38,'#5b7a6c')+boat(84,76,'#1d4ea6')+`<path d="M20 84h30M104 90h36" stroke="#fff" stroke-opacity=".4" stroke-width="1.4"/>`,
+nor:()=>sky('nor',BL)+sun(30,24)+rock(20,58,26,34)+sea(56)+rock(92,62,26,40)+rock(114,62,22,30)+sand(86),
+pan:()=>sky('pan',SS)+sun(118,34,'#fff')+hill(60,'#2f6b3a',4)+R(0,64,160,36,'#4f8fa8')+E(36,78,14,3,'#3f8a4c')+E(110,88,18,4,'#3f8a4c')+E(84,72,10,2.5,'#3f8a4c')+birds(44,30)+`<path d="M60 64v-16M60 48q7 -1 9 4" stroke="#fff" stroke-width="2" fill="none"/>`,
+len:()=>sky('len',BL)+dune(52,'#fff','#f4efe2')+E(48,72,26,7,'#2aa7c9')+E(120,86,30,8,'#2aa7c9')+E(102,58,14,4,'#2aa7c9'),
+flo:()=>sky('flo',BL)+hill(54,'#2e7d4f',10)+sea(58)+sand(84)+boat(110,70,'#1d4ea6',1)+cloud(40,18),
+ouro:()=>sky('ouro',BL)+hill(50,'#4c7a55',16)+hill(66,'#3d6b48',8,2)+church(80,78)+house(28,74,'#fff8e6')+house(48,80,'#ffd36b','#8c3b2a')+house(112,80,'#fff8e6')+house(132,72,'#9fd6c4','#8c3b2a'),
+bon:()=>sky('bon',BL)+trees(30,'#1f6b3a')+R(0,44,160,56,'#35c0c9')+R(0,44,160,6,'#1f9aa6')+[[30,64],[70,76],[112,60],[140,84],[52,90]].map(([x,q])=>E(x,q,6,2.6,'#ffb347')+P(`M${x-6} ${q}l-5 -3v6z`,'#ffb347')).join(''),
+cha:()=>sky('cha',SS)+tepui(6,74,76,36)+tepui(84,72,78,28,'#75573b')+hill(86,'#3f7a48',5),
+gra:()=>sky('gra',['#b9d7ea','#eef6fb'])+hill(58,'#5c8f6a',10)+R(0,66,160,34,'#7fb07a')+[0,1,2].map(r=>`<path d="M0 ${80+r*8}Q80 ${72+r*10} 160 ${80+r*8}" stroke="#2f7d46" stroke-width="4" stroke-dasharray="5 4" fill="none"/>`).join('')+chalet(40,70)+pine(120,72,1.3)+pine(142,74),
+sp:()=>sky('sp',['#32325d','#f08a5d'])+[[6,30],[20,44],[34,26],[46,52],[60,36],[74,60],[90,40],[104,50],[120,30],[134,46],[148,24]].map(([x,h])=>R(x,86-h,12,h,'#27384f')+`<path d="M${x+3} ${91-h}v${h-9}M${x+8} ${91-h}v${h-9}" stroke="#ffd866" stroke-width="1.5" stroke-dasharray="2 4"/>`).join('')+R(0,86,160,14,'#1b2433'),
+jeri:()=>sky('jeri',SS)+sun(40,50)+sea(60)+dune(74,'#f0c97a','#f6dfa3')+palm(134,94),
+pty:()=>sky('pty',BL)+hill(50,'#2e7d4f',14)+R(0,62,160,6,'#d9c7a0')+church(40,64)+house(64,64,'#fff8e6','#1d4ea6')+house(84,64,'#fff8e6')+sea(68)+boat(118,82,'#b5432c',1),
+buz:()=>sky('buz',BL)+sun(130,22)+sea(52)+rock(0,56,60,22,'#2e7d4f')+boat(84,62,'#fff',1)+boat(124,68,'#1d4ea6',1)+sand(84)+palm(22,96),
+pdg:()=>sky('pdg',BL)+sea(48,'#28b5c9')+E(60,66,26,5,'#7fe0d6',' opacity=".7"')+E(118,60,20,4,'#7fe0d6',' opacity=".7"')+boat(86,64,'#8c5a2b',1)+sand(82)+palm(20,98)+palm(140,96,1.2),
+nat:()=>sky('nat',BL)+sun(26,22)+sea(46)+dune(62,'#f3d58c','#f8e6b3')+R(92,66,18,7,'#d4372b')+O(96,74,3.5,'#222')+O(107,74,3.5,'#222')+palm(142,96),
+mar:()=>sky('mar',BL)+sea(38,'#35c0c9')+E(50,54,24,6,'#8be8dc',' opacity=".8"')+E(112,62,30,7,'#8be8dc',' opacity=".8"')+boat(112,56,'#fff',1)+sand(84)+palm(28,98,1.2),
+jal:()=>sky('jal',SS)+sun(34,26)+tepui(88,64,62,24,'#a0522d')+dune(68,'#f5a742','#f9c56a'),
+vea:()=>sky('vea',BL)+tepui(14,132,84,46,'#8a6a4a')+R(76,40,9,46,'#fff',' opacity=".9"')+E(80,90,34,8,'#2aa7c9')+hill(96,'#3f7a48',3)+cloud(124,16),
+bsb:()=>sky('bsb',['#9bd3f5','#e8f6ff'])+sun(26,22)+R(0,80,160,20,'#c96f3b')+R(72,34,7,46,'#fff')+R(82,34,7,46,'#fff')+R(40,72,80,8,'#f2f2f2')+P('M48 72a12 9 0 0 1 24 0z','#fff')+P('M92 63a12 9 0 0 0 24 0z','#fff')+`<path d="M130 80q4 -14 0 -26M138 80q-1 -14 -4 -26M146 80q-6 -14 -8 -26M154 80q-10 -12 -12 -26" stroke="#fff" stroke-width="2" fill="none"/>`,
+bel:()=>sky('bel',SS)+R(40,40,80,22,'#4f7f8c')+[40,64,88,112].map(x=>R(x,30,8,32,'#3d6b78')+P(`M${x-1} 30l5 -10l5 10z`,'#b5432c')).join('')+R(0,62,160,38,'#b08a4f')+boat(40,76,'#1d4ea6',1)+boat(118,82,'#b5432c',1),
+alt:()=>sky('alt',BL)+trees(38,'#1f6b3a')+R(0,52,160,48,'#2f8fb0')+P('M26 72Q80 56 152 66Q90 80 26 72Z','#fff3cf')+boat(40,90,'#8c5a2b')+sun(130,20),
+cwb:()=>sky('cwb',BL)+hill(40,'#2e7d4f',16)+hill(62,'#256b43',10,1)+R(0,64,160,4,'#8a8f98')+[14,44,74,104,134].map(x=>R(x,68,5,32,'#8a8f98')).join('')+R(40,53,22,11,'#1d5c3a')+R(64,55,26,9,'#b5432c')+R(92,55,26,9,'#b5432c')+R(44,47,5,6,'#222')+O(50,42,4,'#fff',' opacity=".8"')+O(58,37,5,'#fff',' opacity=".6"'),
+bc:()=>sky('bc',BL)+sea(74)+`<path d="M0 80Q20 20 44 50T86 40Q104 10 124 56T160 60" stroke="#d4372b" stroke-width="3" fill="none"/><path d="M10 66V100M30 40V100M50 54V100M70 50V100M90 34V100M110 34V100M130 62V100M150 64V100" stroke="#fff" stroke-width="1.2" opacity=".8"/>`+sand(90),
+can:()=>sky('can',BL)+canyon()+birds(70,22,'#22323f')+cloud(120,10,.8),
+ror:()=>sky('ror',['#c7b8ea','#fde7d0'])+tepui(18,124,72,46,'#6f5a4a')+cloud(40,68,1.2)+cloud(110,72,1.3)+cloud(76,30,.7)+hill(88,'#3f7a48',5),
+tra:()=>sky('tra',BL)+sea(50)+R(0,58,160,42,'#58a05a')+church(80,66,'#fff','#1d4ea6')+house(24,74,'#ffd36b')+house(44,78,'#f6a6b2')+house(108,78,'#9fd6c4')+house(128,74,'#ff9a5a')+palm(10,98)+palm(152,98),
+cdj:()=>sky('cdj',['#b9d7ea','#eef6fb'])+hill(52,'#4c7a55',14)+R(0,72,160,28,'#6fa37a')+chalet(58,80)+chalet(102,76)+pine(22,82,1.3)+pine(136,84,1.4)+pine(80,74,.9),
+par:()=>sky('par',['#1b1b3a','#4a2a6a'])+[[30,44],[120,40],[80,58]].map(([x,y],i)=>`<g stroke="${i%2?'#ff6b5e':'#7fb0ff'}" stroke-width="1.6" stroke-linecap="round">`+[0,45,90,135,180,225,270,315].map(a=>`<path d="M${x} ${y}l${(9*Math.cos(a*Math.PI/180)).toFixed(1)} ${(9*Math.sin(a*Math.PI/180)).toFixed(1)}"/>`).join('')+'</g>').join('')+`<path d="M0 12Q80 32 160 12" stroke="#fff" stroke-width="1" fill="none"/>`+[10,26,42,58,74,90,106,122,138].map((x,i)=>P(`M${x} ${14+8*Math.sin(Math.PI*x/160)}l10 1l-5 10z`,i%2?'#d4372b':'#1d4ea6')).join('')+R(0,84,160,16,'#16162c')+[8,22,36,50,64,78,92,106,120,134,148].map((x,i)=>O(x,84,6,i%2?'#d4372b':'#1d4ea6')).join(''),
+abr:()=>sky('abr',BL)+sea(44)+rock(112,46,34,9)+`<g transform="translate(74 70)">`+P('M-3 0Q-2 -14 -16 -22Q-4 -22 0 -15Q4 -22 16 -22Q2 -14 3 0Z','#22323f')+E(0,1,14,3,'#fff',' opacity=".7"')+'</g>'+birds(36,22,'#22323f'),
+cap:()=>sky('cap',BL)+canyon('#a67c52')+P('M52 100L74 70L88 70L108 100Z','#4aa3c7')+boat(81,90,'#fff')
+};
+const cache={};
+return id=>cache[id]||(cache[id]='<svg class="sc" viewBox="0 0 160 100" aria-hidden="true">'+S[id]()+'</svg>');
+})();
+
+const NM={m:'Thiago Arnaldo Henrique Rodrigo Lucas Wagner Gabriel Marcos Otávio Rafael Jorge Caio Bruno Diego Edson Fábio Gustavo Júlio Leandro Murilo Paulo Renato Sérgio Vinícius Ademir Valdir Nilton Osvaldo'.split(' '),
+ f:'Marlene Camila Jéssica Fátima Patrícia Yara Célia Bia Ingrid Aline Bruna Daniela Eliane Fernanda Giovana Helena Isabela Juliana Larissa Mariana Natália Priscila Sueli Tatiana Neide Rosângela Solange Ivone'.split(' ')};
+const CITY='São Paulo|Belo Horizonte|Curitiba|Porto Alegre|Recife|Fortaleza|Brasília|Goiânia|Campinas|Santos|Manaus|Belém|Salvador|Vitória|Cuiabá|Campo Grande|Londrina|Ribeirão Preto|Niterói|Joinville|Uberlândia|São Luís|Natal|Blumenau|Sorocaba|Juiz de Fora|Maringá|Pelotas'.split('|');
+// k role, g gender, pax range, t liked tags, w budget slack, av dislikes, cons limits, x extra they buy, o openings, who
+const PS=[
+{k:['退休夫妇','Retired couple','Casal aposentado'],pax:[2,2],t:'rom praia cult gastro nat',w:.35,av:['festa'],cons:['noHard','noCold','noBoat'],x:'seg',o:[
+ ['Alô? 我是 {N}，退休了。我和老伴 {X} 想趁腿脚还行出去走走。','Alô? This is {N}. I’m retired now, and {X} and I want to travel while our legs still work.','Alô? Aqui é {N}. Me aposentei, e eu e {X} queremos passear enquanto as pernas aguentam.'],
+ ['我叫 {N}。孩子们凑钱送我和 {X} 一趟旅行，说随便挑。','My name is {N}. The children chipped in to give {X} and me a trip. They said to pick anything.','Meu nome é {N}. Os filhos se juntaram para dar uma viagem para mim e {X}. Disseram para escolher.']],
+ who:['就我和 {X} 两个人。年纪大了，图个安心。','Just {X} and me. At our age we like peace of mind.','Só eu e {X}. Na nossa idade a gente quer sossego.']},
+{k:['大学生','Students','Universitários'],pax:[3,5],t:'festa praia avent',w:.08,x:'none',o:[
+ ['E aí, beleza? 我是 {N}，我们几个同学考完试了，想出去疯一把！','E aí, beleza? I’m {N}. Exams are over and a few of us want to go wild!','E aí, beleza? Aqui é {N}. Acabaram as provas e a galera quer curtir!'],
+ ['Fala! {N} 这边。宿舍几个人凑了点钱，想趁假期出去。','Fala! {N} here. Our dorm scraped some money together for the holidays.','Fala! É {N}. A república juntou uma grana para viajar nas férias.']],
+ who:['{P} 个人，都是穷学生，哈哈。','{P} of us, all broke students, haha.','{P} pessoas, tudo estudante duro, haha.']},
+{k:['带孩子的家庭','Family with kids','Família com crianças'],pax:[3,5],t:'fam nat praia',w:.2,cons:['noHard','noRain'],x:'trans',o:[
+ ['Olá，我是 {N}。学校放假了，想带孩子出去看看。','Olá, this is {N}. School is out and we want to show the kids something.','Olá, aqui é {N}. As aulas acabaram e queremos levar as crianças para passear.'],
+ ['Oi! 孩子们天天吵着要出去玩，我 {N} 实在顶不住了。','Oi! The kids nag me every day about a trip. I, {N}, give up.','Oi! As crianças pedem viagem todo dia. Eu, {N}, não aguento mais.']],
+ who:['一家 {P} 口，孩子还小。行李一大堆。','A family of {P}, small children, mountains of luggage.','Família de {P}, crianças pequenas e um monte de mala.']},
+{k:['蜜月新人','Honeymooners','Lua de mel'],pax:[2,2],t:'rom praia avent nat',w:.25,cons:['noRain'],x:'seg',o:[
+ ['Oi! 我是 {N}，我要结婚啦！在找蜜月的地方，要特别一点的。','Oi! I’m {N} and I’m getting married! I need a honeymoon that is a bit special.','Oi! Aqui é {N}, vou casar! Procuro uma lua de mel diferente.'],
+ ['Alô，我叫 {N}。婚礼的事都是我对象在管，蜜月归我安排，可别搞砸了。','Alô, my name is {N}. My fiancé(e) runs the wedding; the honeymoon is my job. I can’t mess it up.','Alô, meu nome é {N}. Do casamento cuida meu amor; a lua de mel é comigo. Não posso errar.']],
+ who:['我和 {X}，两个人。','{X} and me. Two.','Eu e {X}. Dois.']},
+{k:['农场主','Farmer','Fazendeiro'],g:'m',pax:[2,2],t:'nat avent gastro cult',w:.4,av:['praia'],x:'trans',o:[
+ ['Ô de casa… 我是 {N}，种大豆的。老婆说一辈子没出过远门，我得带她走走。','Ô de casa… I’m {N}, I grow soybeans. My wife says she has never been anywhere, so here I am.','Ô de casa… Aqui é o {N}, planto soja. A patroa diz que nunca saiu de casa, então vou levar.'],
+ ['我 {N}，养牛的。今年牛价好，带老婆出去花一点。','{N} here. Cattle. Prices were good this year, so I’ll spend a little on my wife.','Aqui é o {N}, crio gado. O boi deu bom este ano, vou gastar um pouco com a patroa.']],
+ who:['我和老婆子，两个人。到了地方我可不认路。','Me and the wife. Two. I won’t know my way around.','Eu e a patroa. Dois. Chegando lá eu não sei andar.']},
+{k:['教师','Teacher','Professor'],pax:[1,1],t:'cult gastro nat',w:.12,av:['festa'],x:'none',o:[
+ ['您好。我是历史老师 {N}，想利用假期做一次有内涵的旅行。','Good day. I am {N}, a history teacher, and I want a holiday with some substance.','Bom dia. Sou {N}, dou aula de História, e quero uma viagem com conteúdo.'],
+ ['Olá，我是 {N}，教地理的。讲了二十年巴西，自己没去过几个地方。','Olá, I’m {N}, I teach geography. Twenty years explaining Brazil and I have hardly seen it.','Olá, aqui é {N}, dou aula de Geografia. Vinte anos explicando o Brasil e quase não conheço.']],
+ who:['只有我一个人。','Only me.','Só eu.']},
+{k:['带妈妈出游','Daughter and mother','Filha e mãe'],g:'f',pax:[2,2],t:'gastro rom cult praia',w:.2,cons:['noHard','noCold'],x:'trans',o:[
+ ['Oi, tudo bem? 我是 {N}。妈妈快过生日了，想带她出去玩，给她个惊喜。','Oi, tudo bem? I’m {N}. Mum’s birthday is coming and I want to surprise her with a trip.','Oi, tudo bem? Aqui é a {N}. O aniversário da minha mãe está chegando e quero fazer uma surpresa.'],
+ ['Alô，我叫 {N}。妈妈刚退休，我答应带她旅行一次。','Alô, my name is {N}. Mum has just retired and I promised her a trip.','Alô, meu nome é {N}. Minha mãe se aposentou e prometi uma viagem.']],
+ who:['我和妈妈两个人。她腿脚不太好，不想拖着箱子到处找车。','Mum and me. Her legs aren’t great, so no dragging suitcases around looking for taxis.','Eu e minha mãe. Ela não anda bem, não quero carregar mala atrás de táxi.']},
+{k:['赶时间的高管','Executive in a hurry','Executivo apressado'],pax:[1,1],t:'gastro festa cult rom',w:.5,fast:1.5,x:'none',o:[
+ ['Alô. {N}。我时间很紧，长话短说：我要出去放松几天。','Alô. {N}. I’m short of time, so briefly: I need a few days off.','Alô. {N}. Estou sem tempo, então direto: preciso de uns dias de folga.'],
+ ['{N}。我在两个会议中间给你打电话，三分钟，说重点。','{N}. I’m calling between two meetings. Three minutes. Get to the point.','{N}. Estou entre duas reuniões. Três minutos. Vá direto ao ponto.']],
+ who:['一个人。','One.','Uma pessoa.']},
+{k:['带孙子的奶奶','Grandma with grandkids','Vovó com os netos'],g:'f',pax:[3,4],t:'fam avent nat praia',w:.3,cons:['noHard','noHot'],x:'seg',o:[
+ ['Alô, meu bem! 我是 {N} 奶奶。儿子儿媳出差，我要带孙子们出去玩！','Alô, meu bem! This is Grandma {N}. My son is away on business, so I’m taking the grandchildren out!','Alô, meu bem! Aqui é a vó {N}. Meu filho viajou a trabalho e eu vou levar os netos para passear!'],
+ ['Oi, querido! {N} 奶奶这边。今年养老金补发了，全花在孙子身上！','Oi, querido! Grandma {N} here. My pension back-pay came through and it all goes on the grandchildren!','Oi, querido! É a vó {N}. Saiu o atrasado da aposentadoria e vai tudo para os netos!']],
+ who:['我加几个小淘气，一共 {P} 个人。带着孩子，我就怕出意外。','Me plus the little rascals, {P} in all. With children I worry about accidents.','Eu e os pestinhas, {P} ao todo. Com criança eu tenho medo de acidente.']},
+{k:['背包客','Backpackers','Mochileiros'],pax:[2,2],t:'avent nat',w:.08,x:'none',o:[
+ ['Fala! 我是 {N}，和 {X} 都是背包客，想找个能徒步的地方。','Fala! I’m {N}. {X} and I are backpackers looking for somewhere to hike.','Fala! Aqui é {N}. Eu e {X} somos mochileiros e queremos um lugar para fazer trilha.'],
+ ['E aí! {N}。我们俩辞职了，先玩一趟再说。','E aí! {N}. We both quit our jobs. Travel first, worry later.','E aí! {N}. A gente pediu demissão. Primeiro viajar, depois pensar.']],
+ who:['两个人，一人一个背包。','Two of us, one backpack each.','Dois, cada um com sua mochila.']},
+{k:['摄影师','Photographer','Fotógrafo'],pax:[1,1],t:'nat avent',w:.2,av:['fam'],x:'trans',o:[
+ ['你好，我是摄影师 {N}，想拍点真正的野外。','Hello, I’m {N}, a photographer. I want to shoot some real wilderness.','Olá, sou {N}, trabalho com fotografia. Quero fotografar natureza de verdade.'],
+ ['Olá，{N}，给杂志拍片的。我需要一个出片的地方。','Olá, {N}. I shoot for magazines and I need a place that delivers pictures.','Olá, {N}. Fotografo para revista e preciso de um lugar que renda foto.']],
+ who:['我一个人，外加三箱器材和两百卷胶卷。','Just me, three cases of gear and two hundred rolls of film.','Só eu, três caixas de equipamento e duzentos rolos de filme.']},
+{k:['闺蜜团','Group of girlfriends','Grupo de amigas'],g:'f',pax:[3,4],t:'festa cult praia gastro',w:.15,x:'none',o:[
+ ['Oiii! 我是 {N}！我和闺蜜们今年一定要一起出去一次！','Oiii! It’s {N}! My girlfriends and I are finally travelling together this year!','Oiii! Aqui é a {N}! Eu e as amigas vamos viajar juntas este ano de qualquer jeito!'],
+ ['Amiga… 啊不是，你好！{N} 这边。我们姐妹几个想庆祝一下。','Amiga… oh sorry, hello! {N} here. The girls and I want to celebrate.','Amiga… ai, desculpa, alô! É a {N}. Eu e as meninas queremos comemorar.']],
+ who:['{P} 个女生。','{P} women.','{P} mulheres.']},
+{k:['结婚纪念','Wedding anniversary','Bodas de casamento'],pax:[2,2],t:'praia rom gastro nat',w:.9,av:['festa'],cons:['noRain','noBoat'],x:'seg',o:[
+ ['Olá，我是 {N}。我们结婚纪念日快到了，钱不是大问题。','Olá, I’m {N}. Our wedding anniversary is coming up and money is not the issue.','Olá, aqui é {N}. Nossas bodas estão chegando e dinheiro não é problema.'],
+ ['你好，{N}。我想给 {X} 一个惊喜，要体面的。','Hello, {N}. I want to surprise {X} with something elegant.','Alô, {N}. Quero fazer uma surpresa para {X}, coisa fina.']],
+ who:['我和 {X}。','{X} and me.','Eu e {X}.']},
+{k:['冲浪兄弟','Surfer mates','Surfistas'],g:'m',pax:[2,2],t:'praia festa avent',w:.12,av:['rom'],x:'trans',o:[
+ ['E aí, mano! {N} 这边。我和我兄弟想找个地方下海，晚上喝两杯。','E aí, mano! {N} here. My mate and I want waves by day and beers by night.','E aí, mano! É o {N}. Eu e meu parceiro queremos onda de dia e cerveja de noite.'],
+ ['Fala, brother! 我 {N}。哪儿浪好就去哪儿。','Fala, brother! {N}. Wherever the surf is good, we go.','Fala, brother! {N}. Onde tiver onda boa a gente vai.']],
+ who:['两个人，带两块冲浪板。','Two of us and two boards.','Dois, com duas pranchas.']},
+{k:['公司团建','Company outing','Viagem da firma'],pax:[6,10],t:'cult gastro festa nat',w:.1,cons:['noHard'],x:'trans',o:[
+ ['你好，我是一家公司的人事 {N}，要组织团建。','Hello, I’m {N} from personnel. I have to organise the company outing.','Alô, sou {N}, do departamento pessoal. Preciso organizar a viagem da firma.'],
+ ['Olá，{N}，行政部的。老板说年底带团队出去，预算卡得很死。','Olá, {N}, administration. The boss wants a year-end trip and the budget is tight.','Olá, {N}, da administração. O chefe quer viagem de fim de ano e a verba é curta.']],
+ who:['{P} 个同事，得有车统一接送。','{P} colleagues. We need a coach to move everyone.','{P} colegas. Precisa de ônibus para todo mundo.']},
+{k:['单亲妈妈','Single mum','Mãe e filho'],g:'f',pax:[2,2],t:'nat fam praia',w:.15,av:['avent'],x:'seg',o:[
+ ['Oi，我叫 {N}。想带儿子第一次出远门。','Oi, my name is {N}. I want to take my son on his first real trip.','Oi, meu nome é {N}. Quero levar meu filho na primeira viagem dele.'],
+ ['Alô，{N}。女儿考了全班第一，我答应带她旅行。','Alô, {N}. My daughter came top of her class and I promised her a trip.','Alô, {N}. Minha filha foi a primeira da turma e prometi uma viagem.']],
+ who:['我和孩子，两个人。','My child and me. Two.','Eu e a criança. Dois.']},
+{k:['华人店主','Chinese shopkeeper','Lojista chinês'],nm:['陈老板 Chen','林姐 Lin','王哥 Wang','周阿姨 Zhou'],pax:[4,6],t:'nat cult gastro praia',w:.3,cons:['noHard'],x:'trans',o:[
+ ['Olá，我是 {N}，在 25 de Março 开店的。国内亲戚来巴西，要带他们见识见识。','Olá, I’m {N}, I have a shop on 25 de Março. Relatives are visiting from China and I must show them Brazil.','Olá, aqui é {N}, tenho loja na 25 de Março. Chegaram parentes da China e quero mostrar o Brasil.'],
+ ['你好你好，{N}。老家来人了，要拍照好看的地方，照片要寄回老家。','Hello hello, {N}. Family has come over. We need places that look good in photos to post back home.','Alô alô, {N}. Chegou a família. Quero lugar bonito para foto, vou mandar pelo correio.']],
+ who:['{P} 个人，都不会葡语，全靠你们安排。','{P} people, none speak Portuguese. You arrange everything.','{P} pessoas, ninguém fala português. Vocês cuidam de tudo.']},
+{k:['业余球队','Sunday football team','Time de várzea'],g:'m',pax:[5,8],t:'festa praia gastro',w:.1,av:['rom'],x:'none',o:[
+ ['Alô! {N}，我们周末踢球的那帮人拿了社区冠军，要出去庆祝！','Alô! {N}. Our Sunday team won the neighbourhood cup and we’re going to celebrate!','Alô! É o {N}. Nosso time de várzea foi campeão do bairro e vamos comemorar!'],
+ ['Opa! {N}。球队年终旅行，大家让我来问价。','Opa! {N}. Team trip at the end of the year. The lads sent me to ask prices.','Opa! {N}. Viagem do time no fim do ano. A turma mandou eu ver o preço.']],
+ who:['{P} 个大老爷们。','{P} grown men.','{P} marmanjos.']},
+{k:['带宝宝的小夫妻','Couple with a baby','Casal com bebê'],pax:[3,3],t:'fam praia rom',w:.2,cons:['noHard','noBoat','noHot'],x:'seg',o:[
+ ['Oi，我是 {N}。宝宝刚满一岁，我们想试试第一次全家旅行。','Oi, I’m {N}. The baby has just turned one and we want to try a first family trip.','Oi, aqui é {N}. O bebê fez um ano e queremos tentar a primeira viagem em família.'],
+ ['Alô，{N}。带娃一年没出过门了，再不走要疯了。','Alô, {N}. A year at home with the baby. If we don’t get away we’ll go mad.','Alô, {N}. Um ano em casa com o bebê. Se a gente não sair, enlouquece.']],
+ who:['我们俩加一个宝宝，算三个人吧。','The two of us and the baby. Call it three.','Nós dois e o bebê. Conta três.']},
+{k:['马拉松跑者','Marathon runner','Maratonista'],pax:[1,1],t:'avent nat',w:.2,av:['festa'],x:'seg',o:[
+ ['你好，{N}，跑马拉松的。假期不想躺着，想动起来。','Hello, {N}. I run marathons. I don’t want to lie around on holiday.','Olá, {N}. Corro maratona. Não quero ficar deitado nas férias.'],
+ ['Olá，我是 {N}。坐了一年办公室，这次要玩点大的。','Olá, I’m {N}. A year behind a desk. This time I want something big.','Olá, aqui é {N}. Um ano atrás da mesa. Agora quero algo grande.']],
+ who:['就我自己。','Just myself.','Só eu mesmo.']},
+{k:['厨师','Chef','Chef de cozinha'],pax:[2,2],t:'gastro cult rom',w:.25,x:'none',o:[
+ ['Olá，我是厨师 {N}。想出去吃一圈，找点灵感。','Olá, I’m {N}, a chef. I want to eat my way around and find ideas.','Olá, sou {N}, chef de cozinha. Quero sair comendo por aí atrás de ideias.'],
+ ['Oi，{N}。我和 {X} 旅行只有一个标准：吃得好。','Oi, {N}. {X} and I travel by one rule: eat well.','Oi, {N}. Eu e {X} viajamos com uma regra só: comer bem.']],
+ who:['我和 {X}，两张嘴。','{X} and me. Two mouths.','Eu e {X}. Duas bocas.']},
+{k:['作家','Writer','Escritor'],pax:[1,1],t:'cult nat rom gastro',w:.15,av:['festa','fam'],cons:['noCold'],x:'none',o:[
+ ['你好，我是 {N}，写小说的。需要一个安静的地方把书写完，打字机我自己带。','Hello, I’m {N}, a novelist. I need a quiet place to finish the book. I’ll bring my own typewriter.','Olá, sou {N}, escrevo romances. Preciso de sossego para terminar o livro. Levo minha máquina de escrever.'],
+ ['Olá，{N}。我想一个人出去透透气，换换脑子。','Olá, {N}. I want to get away alone and clear my head.','Olá, {N}. Quero sair sozinho e arejar a cabeça.']],
+ who:['一个人。','One.','Uma pessoa.']},
+{k:['带老爸出游','Taking Dad along','Levando o pai'],pax:[3,3],t:'nat cult gastro',w:.25,cons:['noHard','noBoat'],x:'seg',o:[
+ ['Alô，{N}。我们兄妹想带老爸出去走走，他一辈子都在干活。','Alô, {N}. My brother and I want to take Dad away. He has worked his whole life.','Alô, {N}. Eu e meu irmão queremos levar o pai para passear. Ele trabalhou a vida inteira.'],
+ ['Oi，我是 {N}。爸爸八十大寿，全家说要办得特别点。','Oi, I’m {N}. Dad turns eighty and the family wants something special.','Oi, aqui é {N}. O pai faz oitenta anos e a família quer algo especial.']],
+ who:['我、我哥，还有老爸，三个人。','Me, my brother and Dad. Three.','Eu, meu irmão e o pai. Três.']},
+{k:['毕业旅行','Graduation trip','Viagem de formatura'],pax:[4,6],t:'festa praia avent',w:.08,x:'none',o:[
+ ['Oi! {N}！我们班毕业了，要来一次毕业旅行！','Oi! {N}! Our class has graduated and we want a graduation trip!','Oi! {N}! Nossa turma se formou e queremos a viagem de formatura!'],
+ ['E aí! 我是 {N}，毕业旅行委员。全班把钱都交给我了，压力山大。','E aí! I’m {N}, head of the trip committee. The whole class gave me their money. No pressure.','E aí! Sou {N}, da comissão de formatura. A turma toda me deu o dinheiro. Imagina a pressão.']],
+ who:['{P} 个同学。','{P} classmates.','{P} colegas de turma.']},
+{k:['节庆迷','Festival fan','Louco por festa'],pax:[2,3],t:'festa cult',w:.2,x:'none',o:[
+ ['Oiii! 我是 {N}，节庆一到我就坐不住！','Oiii! I’m {N}. When there’s a festival I can’t sit still!','Oiii! Aqui é {N}. Quando tem festa eu não paro quieto!'],
+ ['Alô! {N}。今年我一定要去现场跳个够。','Alô! {N}. This year I’m going to dance until I drop.','Alô! {N}. Este ano eu vou dançar até cair.']],
+ who:['{P} 个人，都是能熬夜的。','{P} of us, all night owls.','{P} pessoas, tudo coruja.']},
+{k:['观鸟爱好者','Birdwatchers','Observadores de aves'],pax:[2,2],t:'nat cult',w:.3,av:['festa','avent'],cons:['noHot'],x:'seg',o:[
+ ['您好，我是 {N}，观鸟协会的。我和 {X} 想添几个新鸟种。','Good day, I’m {N} from the birdwatching club. {X} and I want a few new species.','Bom dia, sou {N}, do clube de observadores de aves. Eu e {X} queremos espécies novas.'],
+ ['Olá，{N}。我们带着望远镜走遍了半个巴西，还差几个地方。','Olá, {N}. We have carried our binoculars across half of Brazil. A few places are missing.','Olá, {N}. Já rodamos meio Brasil de binóculo. Faltam alguns lugares.']],
+ who:['我和 {X}，两副望远镜。','{X}, me and two pairs of binoculars.','Eu, {X} e dois binóculos.']},
+{k:['单身派对','Stag or hen party','Despedida de solteiro'],pax:[4,6],t:'festa praia rom gastro',w:.2,x:'none',o:[
+ ['Oi! 我是 {N}，在筹备好朋友的告别单身派对，要保密！','Oi! I’m {N}. I’m planning a friend’s last party before the wedding. Top secret!','Oi! Aqui é {N}. Estou organizando a despedida de solteiro de um amigo. Segredo!'],
+ ['Alô，{N}。我是伴郎伴娘团的头儿，得办一场忘不掉的。','Alô, {N}. I lead the wedding party and this has to be unforgettable.','Alô, {N}. Sou padrinho-chefe e tem que ser inesquecível.']],
+ who:['{P} 个人，主角还不知道。','{P} people. The guest of honour doesn’t know yet.','{P} pessoas. O homenageado ainda não sabe.']},
+{k:['银行职员','Bank clerk','Bancário'],pax:[1,2],t:'praia nat gastro rom',w:.2,cons:['noRain'],x:'none',o:[
+ ['Olá，我是 {N}，在银行上班。天天数钱，都是别人的。这回花点自己的。','Olá, I’m {N}, I work at a bank. I count money all day and none of it is mine. Time to spend my own.','Olá, sou {N}, trabalho em banco. Conto dinheiro o dia todo e nenhum é meu. Agora vou gastar o meu.'],
+ ['Oi，{N}。我的十三薪到手了，得赶在通胀吃掉它之前花出去。','Oi, {N}. My thirteenth salary has arrived and I must spend it before inflation eats it.','Oi, {N}. Saiu meu décimo terceiro e preciso gastar antes que a inflação coma.']],
+ who:['{P} 个人。','{P}.','{P}.']},
+{k:['出租车司机','Taxi driver','Taxista'],g:'m',pax:[2,4],t:'praia gastro fam festa',w:.12,x:'none',o:[
+ ['Alô! 我是 {N}，开出租的。天天拉别人去机场，今年轮到我自己去了。','Alô! I’m {N}, a taxi driver. I drive people to the airport every day. This year it’s my turn.','Alô! Aqui é o {N}, taxista. Levo gente ao aeroporto todo dia. Este ano sou eu que vou.'],
+ ['Opa，{N}。我把那辆 Fusca 卖了，钱得马上花，不然就贬值了。','Opa, {N}. I sold the old Fusca and I need to spend the money before it melts.','Opa, {N}. Vendi o Fusca e preciso gastar logo, senão o dinheiro derrete.']],
+ who:['一家子，{P} 个人。','The family. {P} of us.','A família. {P} pessoas.']},
+{k:['电视剧迷','Telenovela fan','Noveleira'],g:'f',pax:[2,2],t:'rom praia cult',w:.25,av:['avent'],x:'seg',o:[
+ ['Oi, meu bem! 我是 {N}。我想去电视剧里那种地方，你懂的，男女主角接吻的那种。','Oi, meu bem! I’m {N}. I want to go somewhere like in the telenovela, you know, where the leads kiss.','Oi, meu bem! Aqui é a {N}. Quero ir num lugar igual ao da novela, sabe, onde o casal se beija.'],
+ ['Alô，{N}。八点档演完了我空虚得很，得出去走走。','Alô, {N}. The eight o’clock novela has ended and I feel empty. I need a trip.','Alô, {N}. Acabou a novela das oito e fiquei vazia. Preciso viajar.']],
+ who:['我和我妹妹，两个人。','My sister and me. Two.','Eu e minha irmã. Duas.']},
+{k:['生态学者','Ecologist','Ecólogo'],pax:[1,2],t:'nat avent cult',w:.2,av:['festa'],x:'none',o:[
+ ['你好，我是 {N}，搞生态研究的。里约的环境大会让我想亲眼看看这些地方。','Hello, I’m {N}, an ecologist. The Earth Summit in Rio made me want to see these places for myself.','Olá, sou {N}, trabalho com ecologia. A Eco-92 me deu vontade de ver esses lugares de perto.'],
+ ['Olá，{N}。我想去人少、生态好的地方，越原始越好。','Olá, {N}. I want somewhere with few people and healthy nature. The wilder the better.','Olá, {N}. Quero lugar com pouca gente e natureza preservada. Quanto mais selvagem, melhor.']],
+ who:['{P} 个人，带着笔记本和标本夹。','{P}, with notebooks and a plant press.','{P}, com cadernos e prensa de plantas.']},
+{k:['新晋中奖者','Lottery winner','Ganhador da loteria'],pax:[2,4],t:'praia rom gastro festa',w:1.2,x:'seg',o:[
+ ['Alô?! 我是 {N}！我中了体育彩票！不是头奖，但够玩一趟好的！','Alô?! This is {N}! I won on the football pools! Not the jackpot, but enough for a proper trip!','Alô?! Aqui é {N}! Ganhei na Loteria Esportiva! Não foi o prêmio grande, mas dá para uma viagem boa!'],
+ ['Oi，{N}。别告诉别人：我中奖了。我要带家里人去个好地方。','Oi, {N}. Don’t tell anyone: I won some money. I’m taking the family somewhere nice.','Oi, {N}. Não conta para ninguém: ganhei um dinheiro. Vou levar a família num lugar bom.']],
+ who:['{P} 个人，都是自家人。','{P} people, all family.','{P} pessoas, tudo de casa.']}
+];
+const L={
+want:{praia:[['要有海，能下水。','We need the sea, somewhere to swim.','Tem que ter mar para entrar.'],['海滩，躺着晒太阳。','A beach to lie on in the sun.','Praia para deitar no sol.'],['Praia, praia, praia！沙滩是必须的。','Praia, praia, praia! A beach is a must.','Praia, praia, praia! Sem praia não dá.'],['想听着海浪睡觉。','I want to fall asleep to the sound of waves.','Quero dormir ouvindo o mar.']],
+ nat:[['想看大自然。','We want to see nature.','Queremos ver natureza.'],['瀑布、森林、动物都好。','Waterfalls, forest, animals, all good.','Cachoeira, mata, bicho, tudo serve.'],['风景要壮观。','The scenery must be spectacular.','A paisagem tem que ser de cair o queixo.'],['离城市远一点，到自然里去。','Far from the city, out in nature.','Longe da cidade, no meio do mato.']],
+ cult:[['喜欢老城和历史。','I like old towns and history.','Gosto de cidade antiga e história.'],['博物馆、教堂、老建筑。','Museums, churches, old buildings.','Museu, igreja, casarão.'],['想了解当地文化。','I want to learn about the local culture.','Quero conhecer a cultura do lugar.'],['要有故事的地方。','A place with stories to tell.','Um lugar que tenha história para contar.']],
+ festa:[['晚上要有地方玩。','There must be somewhere to go at night.','Tem que ter para onde ir à noite.'],['派对和音乐，balada！','Parties and music, balada!','Festa e música, balada!'],['越热闹越好。','The livelier the better.','Quanto mais agito, melhor.'],['要能跳舞到天亮。','We want to dance until sunrise.','Queremos dançar até o sol nascer.']],
+ avent:[['来点刺激的。','Something with a thrill.','Alguma coisa com emoção.'],['想冒险，不想只躺着。','Adventure, not just lying around.','Aventura, não quero só ficar deitado.'],['徒步、漂流、潜水这类。','Hiking, rafting, diving, that kind of thing.','Trilha, rafting, mergulho, essas coisas.'],['要有肾上腺素。','I want adrenaline.','Quero adrenalina.']],
+ gastro:[['吃得好最重要。','Eating well matters most.','O mais importante é comer bem.'],['想尝地道的当地菜。','We want proper local food.','Queremos a comida típica de verdade.'],['好餐厅、好酒。','Good restaurants, good wine.','Restaurante bom e vinho bom.'],['我们是为了吃才出门的。','We travel in order to eat.','A gente viaja para comer.']],
+ fam:[['要适合小孩。','It has to suit children.','Tem que servir para criança.'],['孩子得玩得开心。','The kids must have fun.','As crianças têm que se divertir.'],['全家老小都能参与的。','Something the whole family can do.','Algo que a família toda possa fazer.'],['安全、轻松、适合孩子。','Safe, easy and good for kids.','Seguro, tranquilo e bom para criança.']],
+ rom:[['要浪漫。','It must be romantic.','Tem que ser romântico.'],['适合两个人的安静地方。','A quiet place for two.','Um lugar calmo para dois.'],['想看日落、吃烛光晚餐。','Sunsets and candlelit dinners.','Pôr do sol e jantar à luz de velas.'],['气氛要好，você sabe…','The right mood, você sabe…','Um clima gostoso, você sabe…']]},
+avoid:{praia:[['海滩就免了，沙子进鞋里我受不了。','No beach. I can’t stand sand in my shoes.','Praia não. Não suporto areia no sapato.'],['别去海边，我晒不得太阳。','Not the seaside. I burn in the sun.','Mar não. Eu torro no sol.'],['不要沙滩，太无聊。','No beaches. Too boring.','Sem praia. É muito parado.']],
+ nat:[['别把我扔到荒郊野外。','Don’t dump me in the middle of nowhere.','Não me jogue no fim do mundo.'],['蚊子多的地方不去。','Nowhere with mosquitoes.','Lugar com mosquito, não.'],['我不想钻树林。','I am not crawling through forest.','Não quero me meter no mato.']],
+ cult:[['别安排博物馆，我会睡着。','No museums. I fall asleep.','Sem museu. Eu durmo.'],['教堂看一个就够了。','One church is plenty.','Uma igreja só já basta.'],['历史什么的我没兴趣。','History doesn’t interest me.','História não me interessa.']],
+ festa:[['Pelo amor de Deus，千万别是吵闹的派对城市。','Pelo amor de Deus, no noisy party towns.','Pelo amor de Deus, nada de cidade de farra.'],['不要夜店那种地方，我受不了噪音。','No nightclub places. I can’t take the noise.','Nada de boate. Não aguento barulho.'],['太闹的地方不去。','Nowhere rowdy.','Lugar de bagunça, não.']],
+ avent:[['别太冒险，我胆子小。','Nothing risky. I scare easily.','Nada arriscado. Sou medroso.'],['危险的项目一律不要。','No dangerous activities at all.','Nenhum passeio perigoso.'],['刺激的就算了，我恐高。','No thrills. I’m afraid of heights.','Sem emoção forte. Tenho medo de altura.']],
+ fam:[['别安排满是小孩的亲子景点。','No attractions full of children.','Nada de lugar cheio de criança.'],['不要游乐园那一类。','No theme parks or the like.','Parque de diversão, não.'],['到处是小孩尖叫的地方不去。','Nowhere with kids screaming everywhere.','Lugar com criança gritando, não.']],
+ rom:[['别搞蜜月那一套。','None of that honeymoon stuff.','Nada de clima de lua de mel.'],['浪漫的就算了。','Skip the romance.','Romantismo, dispenso.'],['不要情侣扎堆的地方。','Nowhere packed with couples.','Lugar cheio de casal, não.']]},
+budget:[['总共 {B}{ALL}，不能再多了。','{B} in total{ALL}. Not a cruzeiro more.','{B} no total{ALL}. Nem um cruzeiro a mais.'],
+ ['预算 {B}{ALL}。Nem um centavo a mais.','The budget is {B}{ALL}. Nem um centavo a mais.','O orçamento é {B}{ALL}. Nem um centavo a mais.'],
+ ['我们凑了 {B}{ALL}。','We scraped together {B}{ALL}.','Juntamos {B}{ALL}.'],
+ ['{B}{ALL}，超了回家没法交代。','{B}{ALL}. Any more and I can’t go home.','{B}{ALL}. Mais que isso eu não volto para casa.'],
+ ['{B}{ALL}。能省当然更好。','{B}{ALL}. Cheaper is welcome, of course.','{B}{ALL}. Se sair mais barato, melhor.'],
+ ['我看看… {B}{ALL}，这是上限。','Let me see… {B}{ALL}. That is the ceiling.','Deixa eu ver… {B}{ALL}. É o teto.'],
+ ['{B}{ALL}。按今天的汇率算，明天可就不是这个数了。','{B}{ALL}. At today’s rate, mind you. Tomorrow it’s another number.','{B}{ALL}. No câmbio de hoje, viu? Amanhã já é outro número.'],
+ ['大概 {B}{ALL}，我存了大半年。','About {B}{ALL}. It took me most of a year to save.','Uns {B}{ALL}. Levei quase um ano para juntar.'],
+ ['{B}{ALL}。存款刚解冻，可得省着花。','{B}{ALL}. My savings were only just unfrozen, so go easy.','{B}{ALL}. A poupança acabou de ser desbloqueada, então vai com calma.']],
+days:[['最多 {D} 天，多一天都请不了假。','{D} days at most. I can’t get one more day off.','No máximo {D} dias. Não consigo nem um dia a mais.'],
+ ['{D} 天。假期就这么长。','{D} days. That’s all the holiday I have.','{D} dias. É o que tenho de férias.'],
+ ['我只有 {D} 天，来回都算上。','I have {D} days, travel included.','Tenho {D} dias, contando ida e volta.'],
+ ['{D} 天以内吧，再久家里的狗没人喂。','Within {D} days. Any longer and nobody feeds the dog.','Até {D} dias. Mais que isso ninguém dá comida para o cachorro.'],
+ ['撑死 {D} 天。','{D} days, tops.','{D} dias, no máximo dos máximos.'],
+ ['{D} 天，não mais que isso。','{D} days, não mais que isso.','{D} dias, não mais que isso.'],
+ ['{D} 天。老板只批了这么多。','{D} days. That’s all the boss signed off.','{D} dias. Foi o que o chefe liberou.']],
+month:[['{M}出发。','We leave in {M}.','Vamos em {M}.'],['打算{M}去。','We plan to go in {M}.','A ideia é ir em {M}.'],['{M}，假都请好了。','{M}. The leave is already booked.','{M}. As férias já estão marcadas.'],
+ ['只能{M}，别的时间走不开。','Only {M}. I can’t get away any other time.','Só em {M}. Fora disso não consigo sair.'],['{M}吧，机票那时候便宜点。','{M}, I think. Flights are cheaper then.','Em {M}, acho. A passagem fica mais barata.'],['{M}。日子早就定了。','{M}. The date was fixed long ago.','{M}. A data já está fechada faz tempo.']],
+now:[['下周就走！越快越好。就这个月，{M}。','Next week! The sooner the better. This month, {M}.','Semana que vem! Quanto antes melhor. Este mês, {M}.'],
+ ['就这个月，{M}，说走就走。','This very month, {M}. Pack and go.','Este mês mesmo, {M}. É arrumar e ir.'],
+ ['下个周末出发，别问为什么这么急。现在不是{M}嘛。','Next weekend. Don’t ask why the rush. It’s {M} now, isn’t it.','No próximo fim de semana. Não pergunte a pressa. Estamos em {M}, né.'],
+ ['马上，这几天就想走，{M}之内。','Right away, in the next few days, still in {M}.','Já, nos próximos dias, ainda em {M}.']],
+cons:{noHard:[['我膝盖不行，爬山徒步的免谈。','My knees are bad. No climbing, no trekking.','Meu joelho é ruim. Nada de subir morro nem trilha.'],['别让我们走太多路，有老人。','Not too much walking, we have an elderly person.','Sem muita caminhada, tem idoso.'],['体力活不行，要轻松的。','Nothing strenuous. Keep it easy.','Nada puxado. Tem que ser leve.']],
+ noBoat:[['我晕船，要坐船的不去。','I get seasick. Nothing with boats.','Eu enjoo. Nada com barco.'],['千万别安排船，我上次吐了一路。','No boats, please. Last time I was sick the whole way.','Barco não, por favor. Da última vez passei mal o tempo todo.'],['不坐船，我不会游泳，害怕。','No boats. I can’t swim and it frightens me.','Sem barco. Não sei nadar e tenho medo.']],
+ noRain:[['最怕下雨，一下雨整个假期就毁了。','I dread rain. Rain ruins the whole holiday.','Morro de medo de chuva. Chuva acaba com as férias.'],['雨季别去，我要天天出太阳。','Not in the rainy season. I want sun every day.','Época de chuva, não. Quero sol todo dia.'],['下雨的话我宁可不去。','If it rains I’d rather stay home.','Se for para chover, fico em casa.']],
+ noCold:[['我怕冷，冷的地方不去。','I hate the cold. Nowhere cold.','Detesto frio. Lugar frio, não.'],['别让我带厚外套，要暖和的。','Don’t make me pack a coat. Somewhere warm.','Não me faça levar casaco. Quero calor.'],['冷天我关节疼，得去暖和地方。','My joints ache in the cold. It has to be warm.','No frio minhas juntas doem. Tem que ser quente.']],
+ noHot:[['我怕热，四十度那种不行。','I can’t take heat. Not forty degrees.','Não aguento calor. Quarenta graus, não.'],['太热的地方不去，我会中暑。','Nowhere too hot. I get heatstroke.','Lugar quente demais, não. Eu passo mal.'],['别太热，小的受不了。','Not too hot. The little one can’t cope.','Sem calorão. O pequeno não aguenta.']]},
+none:[['Nada，没什么特别要求。','Nada, nothing special.','Nada, nenhuma exigência.'],['没有，你看着安排。','No. You decide.','Não. Você que sabe.'],['不挑，只要好玩。','Not fussy, as long as it’s fun.','Não sou exigente, só quero diversão.'],['没有。哦对，酒店要有彩电，这不算吧？','No. Oh, the hotel must have a colour TV. That doesn’t count, does it?','Não. Ah, o hotel tem que ter TV em cores. Isso não conta, né?'],['没啥，别让我早上五点起床就行。','Nothing, just don’t get me up at five.','Nada, só não me acorde às cinco.'],['没有。房间有电话就更好了。','No. A phone in the room would be nice.','Não. Se tiver telefone no quarto, melhor.']],
+mood:[['我是第一次打电话订旅行，有点紧张。','It’s my first time booking a trip by phone. I’m a bit nervous.','É a primeira vez que compro viagem por telefone. Estou meio nervoso.'],
+ ['我在报纸上看到你们的广告才打来的。','I saw your advert in the paper.','Vi o anúncio de vocês no jornal.'],
+ ['隔壁那家旅行社报的价我不满意，看看你们的。','The agency next door quoted me a price I didn’t like. Let’s see yours.','A agência do lado deu um preço que não gostei. Vamos ver o de vocês.'],
+ ['电话费按分钟算的，咱们快点。','The phone company charges by the pulse, so let’s be quick.','A conta de telefone é por pulso, então vamos rápido.'],
+ ['我老板不知道我在上班时间打这个电话。','My boss doesn’t know I’m calling during work.','Meu chefe não sabe que estou ligando no expediente.'],
+ ['你们的小册子我翻烂了，就是拿不定主意。','I’ve worn out your brochure and still can’t decide.','Já gastei o folheto de vocês de tanto olhar e não decido.'],
+ ['我嫂子说你们这儿的人很耐心。','My sister-in-law says your people are patient.','Minha cunhada disse que vocês têm paciência.'],
+ ['价钱一天一个样，我想今天就定下来。','Prices change every day. I want to settle this today.','O preço muda todo dia. Quero fechar hoje.'],
+ ['我攒了一年的假，可不能浪费。','I saved a whole year of leave. It can’t be wasted.','Guardei as férias o ano todo. Não posso desperdiçar.'],
+ ['上次我自己订的，结果一塌糊涂。这次交给你们。','Last time I booked it myself and it was a disaster. This time it’s yours.','Da última vez organizei sozinho e foi um desastre. Agora é com vocês.'],
+ ['我长这么大还没坐过飞机呢。','I have never been on an aeroplane in my life.','Nunca andei de avião na vida.'],
+ ['快一点，我是从单位的电话打的。','Quickly please, I’m on the office phone.','Rápido, por favor, estou no telefone da firma.']],
+fail:{avoid:[['Não, não! 我可不要{T}那一套！','Não, não! None of that {T} business for me!','Não, não! {T} não é comigo!'],['{T}？我最烦这个了。','{T}? That’s the last thing I want.','{T}? É a última coisa que eu quero.'],['你没在听吧？我不喜欢{T}。','Are you listening? I don’t like {T}.','Você está ouvindo? Não gosto de {T}.']],
+ bad:[['Peraí… 我表姐说{BT}。你是不是没查清楚？','Peraí… my cousin says {BT}. Did you check?','Peraí… minha prima disse que {BT}. Você conferiu?'],['等等，那个月份不对吧？{BT}。','Hold on, wrong month, surely? I heard {BT}.','Espera, não é o mês errado? Ouvi dizer que {BT}.'],['我同事去年这时候去过，白跑一趟：{BT}。','A colleague went this time last year for nothing: {BT}.','Um colega foi nessa época e perdeu a viagem: {BT}.']],
+ alert:[['你没看天气预报吗？{R}这周有{AL}！','Haven’t you seen the forecast? There’s {AL} in the {R} this week!','Não viu a previsão? Tem {AL} no {R} esta semana!'],['电视上说{R}正闹{AL}，我马上就走，你让我去那儿？','The news says {AL} in the {R}, I leave in days, and you send me there?','O jornal falou em {AL} no {R}, eu viajo já, e você me manda para lá?'],['这周{R}{AL}，换个地方。','{AL} in the {R} this week. Somewhere else.','{AL} no {R} esta semana. Outro lugar.']],
+ hard:[['要爬山徒步？我说了走不动。','Trekking? I can’t manage that.','Trilha? Eu não aguento.'],['这也太累了，不适合我们。','Far too tiring for us.','Cansativo demais para nós.'],['体力吃不消，换一个轻松的。','We’re not fit enough. Something easier.','Não temos fôlego. Algo mais leve.']],
+ boat:[['还要坐船？我晕船！','A boat? I get seasick!','Barco? Eu enjoo!'],['不行不行，有船的不去。','No, no. Nothing with boats.','Não, não. Com barco eu não vou.'],['一听要上船我就头晕。','Just hearing “boat” makes me dizzy.','Só de ouvir “barco” já fico tonto.']],
+ cold:[['{M}那边冷得要命，我怕冷。','It’s freezing there in {M}, and I hate the cold.','Em {M} lá é um gelo, e eu detesto frio.'],['这个季节去那儿？冻死人。','There, at that time of year? I’d freeze.','Lá, nessa época? Eu congelo.'],['太冷了，换一个。','Too cold. Something else.','Frio demais. Outra coisa.']],
+ coldsea:[['{M}那边是冬天，海水冰得下不去，还玩什么海滩？','It’s winter there in {M}. The sea is icy. What beach?','Em {M} lá é inverno. O mar é um gelo. Que praia?'],['冬天去海边？我是想下水的！','The seaside in winter? I want to swim!','Praia no inverno? Eu quero entrar na água!'],['那时候的海只能看不能游。','At that time you can only look at the sea.','Nessa época o mar é só para olhar.']],
+ hot:[['{M}那里热得像烤箱，我受不了。','It’s an oven there in {M}. I couldn’t bear it.','Em {M} lá é um forno. Não aguento.'],['太热了，不行。','Too hot. No.','Quente demais. Não.'],['四十度？你想热死我？','Forty degrees? Are you trying to kill me?','Quarenta graus? Quer me matar?']],
+ rain:[['那边{M}是雨季吧？我不想淋雨。','Isn’t {M} the rainy season there? I don’t want to get soaked.','{M} lá não é época de chuva? Não quero me molhar.'],['雨季去？Nem pensar.','In the rainy season? Nem pensar.','Na época de chuva? Nem pensar.'],['{M}去那儿？天气预报我也会看的。','There in {M}? I read the forecast too, you know.','Lá em {M}? Eu também leio a previsão.']],
+ price:[['Nossa, que caro! 合计 {COST}？这超出我的预算了。','Nossa, que caro! {COST} in total? That’s over my budget.','Nossa, que caro! {COST} no total? Passa do meu orçamento.'],['{COST}？你当我是百万富翁？','{COST}? Do I sound like a millionaire?','{COST}? Tenho cara de milionário?'],['Tá louco? 太贵了，超预算了。','Tá louco? Far too expensive.','Tá louco? Caro demais.']],
+ days:[['{PD} 天？我没有那么多假期。','{PD} days? I don’t have that much leave.','{PD} dias? Não tenho tudo isso de férias.'],['时间太长了，我只有 {D} 天。','Too long. I only have {D} days.','Longo demais. Só tenho {D} dias.'],['{PD} 天走不开。','I can’t be away for {PD} days.','Não posso ficar {PD} dias fora.']],
+ like:[['Hmm… 这不太是我想要的旅行。','Hmm… that isn’t really the trip I had in mind.','Hmm… não é bem a viagem que eu imaginei.'],['听着不错，但不是我们要的。','Sounds nice, but it isn’t us.','Parece bom, mas não é a nossa cara.'],['Sei lá… 没什么感觉，换一个？','Sei lá… it does nothing for me. Another?','Sei lá… não me animou. Tem outra?']]},
+yes:[['Perfeito! 就是它了，帮我订吧！','Perfeito! That’s the one. Book it!','Perfeito! É essa. Pode reservar!'],['Nossa，太合适了！Fechado!','Nossa, that’s exactly right! Fechado!','Nossa, é isso mesmo! Fechado!'],['Era isso mesmo! 就要这个。','Era isso mesmo! I’ll take it.','Era isso mesmo! Vou querer.'],['Show de bola! 订！','Show de bola! Book it!','Show de bola! Reserva!'],['Maravilha! 你真懂我。','Maravilha! You read my mind.','Maravilha! Você leu meu pensamento.'],['Adorei! 我今天下午就去店里付定金。','Adorei! I’ll come by this afternoon with the deposit.','Adorei! Passo aí hoje à tarde com o sinal.'],['Beleza! 趁价钱还没涨，马上订。','Beleza! Book it before the price goes up.','Beleza! Reserva antes que o preço suba.']],
+ok:[['Tá bom… 不算十全十美，不过可以，就这个吧。','Tá bom… not perfect, but fine. I’ll take it.','Tá bom… não é perfeito, mas serve. Vou levar.'],['Hmm，也行。订吧。','Hmm, all right. Book it.','Hmm, pode ser. Reserva.'],['差一点意思，但时间不等人，就它了。','Not quite it, but time is short. That one.','Não é bem isso, mas o tempo é curto. Essa mesmo.'],['Pode ser. 就这样吧。','Pode ser. Let’s do that.','Pode ser. Vamos nessa.']],
+okRain:[['那时候会下点雨吧… 算了，带把伞，订吧。','It’ll rain a bit then, won’t it… Never mind, I’ll take an umbrella. Book it.','Vai chover um pouco, né… Tudo bem, levo guarda-chuva. Reserva.'],['雨季是吧？便宜就行，订。','Rainy season, eh? If it’s cheap, fine. Book it.','Época de chuva, é? Se for barato, tudo bem. Reserva.']],
+acc:[['Boa ideia! 加上吧。','Boa ideia! Add it.','Boa ideia! Pode incluir.'],['Ah，这个好，要了！','Ah, I like that. Yes!','Ah, gostei. Quero!'],['Pode colocar! 加上。','Pode colocar! Put it in.','Pode colocar!'],['本来就想问这个，加。','I was about to ask for that. Add it.','Eu ia pedir isso. Inclui.'],['听着不错，算我一份。','Sounds good. Count me in.','Parece bom. Estou dentro.']],
+dec:[['Não, obrigado. 不用了。','Não, obrigado. No need.','Não, obrigado. Não precisa.'],['这个就算了。','I’ll pass on that.','Essa eu dispenso.'],['Deixa，下次吧。','Deixa. Next time.','Deixa. Fica para a próxima.'],['不用不用，谢谢。','No, no, thank you.','Não, não, obrigado.'],['这个不适合我们。','That’s not for us.','Isso não é para nós.']],
+over:[['我都说了预算有限！别再推销了。','I told you the budget is tight! Stop selling.','Já falei que o dinheiro é curto! Chega de empurrar.'],['还加钱？Chega!','More money? Chega!','Mais dinheiro? Chega!'],['已经到上限了，你还卖？','I’m at my limit and you’re still selling?','Estou no limite e você continua vendendo?']],
+bye:[['Valeu! Tchau tchau!','Valeu! Tchau tchau!','Valeu! Tchau tchau!'],['Um abraço! 再见！','Um abraço! Goodbye!','Um abraço! Até logo!'],['Brigadão! Até mais!','Brigadão! Até mais!','Brigadão! Até mais!'],['Tchau, querido!','Tchau, querido!','Tchau, querido!'],['Deus te abençoe! Tchau!','Deus te abençoe! Tchau!','Deus te abençoe! Tchau!']],
+hang:[['Deixa pra lá… 算了，我找别家问问。','Deixa pra lá… I’ll try another agency.','Deixa pra lá… vou ver em outra agência.'],['你们太慢了。Tchau.','You’re too slow. Tchau.','Vocês demoram demais. Tchau.'],['Olha，我没时间了，再见。','Olha, I’m out of time. Goodbye.','Olha, acabou meu tempo. Tchau.'],['算了算了，我去隔壁那家。','Forget it. I’m going to the place next door.','Esquece. Vou na agência do lado.'],['Ai, que demora! 我挂了。','Ai, que demora! I’m hanging up.','Ai, que demora! Vou desligar.'],['我的硬币用完了！（嘟——）','I’m out of phone tokens! (click)','Acabou minha ficha! (tu-tu-tu)']],
+jokes:[['您知道什么叫通胀吗？上公交时一个价，坐下时又涨了。','Do you know what inflation is? The bus fare goes up between getting on and sitting down.','Sabe o que é inflação? A passagem sobe entre você entrar no ônibus e sentar.'],
+ ['我们老板说，这里唯一不涨的就是我的工资。','My boss says the only thing here that never goes up is my salary.','Minha chefe diz que a única coisa que não sobe aqui é o meu salário.'],
+ ['昨天有位客人订了环球旅行，后来又来问有没有别的地方可去。','Yesterday a caller booked a trip around the world, then rang back to ask if we had anywhere else.','Ontem um cliente comprou a volta ao mundo e depois ligou perguntando se tinha outro lugar.'],
+ ['我跟您说实话：这条线路我自己都想去，就是请不到假。','I’ll be honest: I want to take this trip myself. I just can’t get the time off.','Vou ser sincero: eu mesmo queria ir nessa viagem. Só não me dão folga.'],
+ ['您放心，我们的大巴比克鲁塞罗稳多了。','Don’t worry, our coaches are far steadier than the cruzeiro.','Fique tranquilo, nosso ônibus é bem mais firme que o cruzeiro.']],
+haggle:[['Só uma coisa… 能不能便宜一点？Dá um descontinho?','Só uma coisa… could you knock a bit off? Dá um descontinho?','Só uma coisa… dá um descontinho?'],
+ ['等等，隔壁那家说能给我打折。你们呢？','Wait, the agency next door offered me a discount. And you?','Espera, a agência do lado me ofereceu desconto. E vocês?'],
+ ['我是老顾客的朋友，总得给点优惠吧？','I’m a friend of a regular. Surely that’s worth something?','Sou amigo de cliente antigo. Isso não vale um agrado?'],
+ ['现金付，一次付清。能少多少？','Cash, all at once. How much off?','À vista, em dinheiro. Quanto você tira?']],
+hagYes:[['Aí sim! 这才叫做生意。','Aí sim! Now that’s business.','Aí sim! Isso é que é negócio.'],['Fechado! 你人不错。','Fechado! You’re all right.','Fechado! Você é gente boa.'],['Obrigado! 我会再来的。','Obrigado! I’ll be back.','Obrigado! Eu volto.']],
+hagWin:[['行吧行吧，你这张嘴啊… 原价就原价。','All right, all right, you smooth talker… full price.','Tá bom, tá bom, que lábia… preço cheio.'],['哈哈，试试而已。订吧。','Haha, worth a try. Book it.','Haha, não custava tentar. Reserva.']],
+hagLose:[['一分钱都不让？算了，订吧，但我记住了。','Not one cent off? Fine, book it, but I’ll remember this.','Nem um centavo? Tá, reserva, mas não esqueço.'],['小气。订是订，下次我去别家。','Stingy. I’ll book, but next time I go elsewhere.','Pão-duro. Reservo, mas da próxima vou em outra.']],
+greetBad:[['客人愣了一下。','The caller pauses, puzzled.','O cliente fica sem entender.'],['客人嘟囔：「现在都几点了…」','The caller mutters, “at this hour?”','O cliente resmunga: “a esta hora?”'],['客人笑出了声。','The caller laughs out loud.','O cliente dá risada.']],
+filler:[['（电话那头狗在叫）Quieto, Thor! …抱歉，你继续。','(a dog barks) Quieto, Thor! …Sorry, go on.','(um cachorro late) Quieto, Thor! …Desculpa, continua.'],
+ ['你那边能听清吗？这条线杂音好大。','Can you hear me? This line is so crackly.','Está me ouvindo? Esta linha está com um chiado.'],
+ ['等一下，有人按门铃… 好了。','One moment, the doorbell… All right.','Um momento, a campainha… Pronto.'],
+ ['顺便问一句，你们那儿今天热吗？','By the way, is it hot where you are?','Aliás, está calor aí?'],
+ ['Ai，我的咖啡洒了。继续继续。','Ai, I spilled my coffee. Go on, go on.','Ai, derramei o café. Continua, continua.'],
+ ['（背景里收音机正播足球）Goool! …不好意思。','(football on the radio) Goool! …Sorry.','(futebol no rádio) Goool! …Desculpa.'],
+ ['你声音挺精神的，新来的吧？','You sound keen. New, are you?','Você parece animado. É novo aí?'],
+ ['我邻居上次就是在你们这儿订的，说不错。','My neighbour booked with you last time and was happy.','Meu vizinho comprou com vocês e gostou.'],
+ ['（小孩在哭）Calma, filho! …你说到哪儿了？','(a child cries) Calma, filho! …Where were we?','(criança chorando) Calma, filho! …Onde a gente estava?'],
+ ['等等，我找支笔记一下。','Wait, let me find a pen.','Espera, vou pegar uma caneta.'],
+ ['（串线了，有人在聊菜价）Alô? 还是你吗？','(crossed line, someone is discussing the price of beans) Alô? Is that still you?','(linha cruzada, alguém fala do preço do feijão) Alô? Ainda é você?'],
+ ['你听说了吗，汽油又涨价了。','Did you hear? Petrol went up again.','Você viu? A gasolina subiu de novo.'],
+ ['（电视里在放八点档主题曲）等等，我把声音关小。','(the novela theme plays) Wait, I’ll turn it down.','(toca a abertura da novela) Espera, vou abaixar.'],
+ ['我得快点，后面还有人等着用电话。','I must hurry, people are waiting for this phone.','Tenho que ser rápido, tem gente esperando o telefone.']]
+};
+const rnd=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rnd(a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const fl=(s,o,l)=>s.replace(/\{(\w+)\}/g,(m,k)=>k in o?(Array.isArray(o[k])?o[k][l]:o[k]):m);
+const t3=(a,o)=>[0,1,2].map(l=>fl(a[l],o||{},l));
+// per-person price depends on party size: single supplement, base for 2-3, group rates for 4+
+const unit=(p,n)=>Math.round(p.price*(n===1?1.3:n<4?1:n<6?.94:.88)/5)*5;
+const ORDER=['avoid','bad','alert','hard','boat','cold','coldsea','hot','price','days','like','rain'];
+function score(c,p,al){
+  const cost=unit(p,c.pax)*c.pax,m=c.month,has=k=>c.cons.includes(k);let flags=[],s=0;
+  if(c.avoid&&p.tags.includes(c.avoid)){s-=25;flags.push('avoid')}
+  if(p.bad.includes(m)){s-=40;flags.push('bad')}
+  else if(p.rain.includes(m)){s-=has('noRain')?35:15;flags.push('rain')}
+  else s+=10;
+  if(p.cold.includes(m)){
+    if(has('noCold')){s-=35;flags.push('cold')}
+    else if(p.tags.includes('praia')&&c.wants.includes('praia')){s-=30;flags.push('coldsea')}}
+  if(p.hot.includes(m)&&has('noHot')){s-=35;flags.push('hot')}
+  if(c.now&&al&&p.reg===al){s-=30;flags.push('alert')}
+  if(p.hard&&has('noHard')){s-=35;flags.push('hard')}
+  if(p.boat&&has('noBoat')){s-=35;flags.push('boat')}
+  if(cost<=c.budget)s+=30;else if(cost<=c.budget*1.1)s+=15;else flags.push('price');
+  if(p.days<=c.days)s+=20;else if(p.days===c.days+1)s+=8;else flags.push('days');
+  const hit=c.wants.filter(w=>p.tags.includes(w)).length;s+=hit*20;if(!hit)flags.push('like');
+  if(!flags.length&&s<70)flags.push(hit<2?'like':'price');
+  flags.sort((a,b)=>ORDER.indexOf(a)-ORDER.indexOf(b));
+  return{s,flags,cost};
+}
+// o: {month: current month, al: alert region or null, cons: bool, now: bool}
+function genCustomer(ps,o){
+  const pt=ps.t.split(' ');
+  for(let i=0;i<400;i++){
+    const T=pick(PK),both=T.tags.filter(t=>pt.includes(t));
+    if(both.length<(i<200?2:1))continue;
+    const wants=shuffle(both.slice()).slice(0,2);
+    if(wants.length<2)wants.push(pick(T.tags.filter(t=>t!==wants[0])));
+    const now=!!(o.now&&o.al)&&Math.random()<.3,month=now?o.month:1+rnd(12);
+    if(now&&T.reg===o.al)continue;
+    if(T.bad.includes(month)||T.rain.includes(month))continue;
+    if(T.cold.includes(month)&&wants.includes('praia'))continue;
+    const okC=k=>k==='noHard'?!T.hard:k==='noBoat'?!T.boat:k==='noCold'?!T.cold.includes(month):k==='noHot'?!T.hot.includes(month):true;
+    let cons=[];
+    if(o.cons){let pool=(ps.cons||[]).filter(okC);
+      if(Math.random()<.35)pool=pool.concat(['noRain','noCold','noHot'].filter(okC));
+      cons=[...new Set(shuffle(pool).slice(0,rnd(3)))]}
+    let avs=(ps.av||[]).filter(a=>!T.tags.includes(a));
+    if(!avs.length&&Math.random()<.35)avs=['festa','praia','avent','fam','cult','rom'].filter(a=>!T.tags.includes(a)&&!pt.includes(a));
+    const avoid=avs.length?pick(avs):null;
+    const pax=ps.pax[0]+rnd(ps.pax[1]-ps.pax[0]+1);
+    const budget=Math.ceil(unit(T,pax)*pax*(1.02+Math.random()*ps.w)/10)*10;
+    const g=ps.g||pick(['m','f']),n=ps.nm?pick(ps.nm):pick(NM[g]);
+    const c={n,role:ps.k,from:pick(CITY),pax,budget,days:T.days+rnd(3),wants,avoid,month,now,cons,extra:ps.x,fast:ps.fast||1,target:T.id};
+    const v={N:n,X:pick(NM[g==='m'?'f':'m']),P:pax};
+    c.open=t3(pick(ps.o),v);c.who=t3(ps.who,v);
+    c.mood=Math.random()<.45?pick(L.mood):null;
+    const a=pick(L.want[wants[0]]),b=pick(L.want[wants[1]]),d=avoid?pick(L.avoid[avoid]):['','',''];
+    c.like=[0,1,2].map(l=>a[l]+' '+b[l]+(d[l]?' '+d[l]:''));
+    if(score(c,T,o.al).s===100)return c;
+  }
+  return null;
+}
+
+// stars: rating 1-5 (1 costs a life in endless). money: commission change in US$. rev: sale in US$. target: raises today's target.
+const SPECIALS=[
+{n:'Sr. Otávio',from:['Guarulhos 机场','Guarulhos airport','Aeroporto de Guarulhos'],open:['你们怎么搞的？！我去 Recife 的航班取消了，我现在就站在柜台前，没人管我！','What is going on?! My flight to Recife is cancelled and I’m standing at the counter with nobody helping!','O que é isso?! Meu voo para Recife foi cancelado e estou no balcão sem ninguém para me atender!'],opts:[
+ {t:['道歉，立刻改签下一班，并安排今晚的酒店','Apologise, rebook him on the next flight and arrange a hotel for tonight','Pedir desculpas, remarcar no próximo voo e arrumar hotel para hoje'],r:['……好吧。这才像话。','…All right. That’s more like it.','…Tá bom. Assim sim.'],stars:5,money:-40,note:['公司垫付酒店 US$ 40','The agency covers a US$ 40 hotel','A agência paga US$ 40 de hotel']},
+ {t:['「这是航空公司的问题，请您找他们。」','“That’s the airline’s problem. Talk to them.”','“Isso é com a companhia aérea. Fale com eles.”'],r:['什么？！我再也不找你们订票了！','What?! I’ll never book with you again!','O quê?! Nunca mais compro com vocês!'],stars:1},
+ {t:['请他稍等，你去查一查情况','Ask him to hold while you look into it','Pedir para aguardar enquanto você verifica'],r:['查？我都等了两个小时了…… 行吧，快点。','Look into it? I’ve waited two hours… Fine, hurry.','Verificar? Estou há duas horas esperando… Tá, rápido.'],stars:3}]},
+{n:['未知号码','Unknown caller','Número desconhecido'],from:['听起来像个小孩','sounds like a child','parece criança'],open:['（憋着笑）喂，请问你们有去月球的套餐吗？含早餐的那种。','(stifling giggles) Hello, do you have a package to the Moon? With breakfast?','(segurando o riso) Alô, vocês têm pacote para a Lua? Com café da manhã?'],opts:[
+ {t:['「有的，不过回程票还没开售。等你长大了再来订！」','“We do, but return tickets aren’t on sale yet. Call back when you grow up!”','“Temos, mas a volta ainda não está à venda. Liga quando crescer!”'],r:['哈哈哈哈！你真逗！（挂断）','Hahaha! You’re funny! (click)','Hahaha! Você é engraçado! (desliga)'],stars:5},
+ {t:['「小朋友，再捣乱我就告诉你妈妈。」','“Young man, one more prank and I tell your mother.”','“Menino, mais um trote e eu conto para sua mãe.”'],r:['略略略——（挂断）','Nyah nyah! (click)','Lero-lero! (desliga)'],stars:3},
+ {t:['破口大骂','Shout at him','Xingar'],r:['（孩子的妈妈接过了听筒）你刚才说什么？！','(his mother takes the phone) What did you just say?!','(a mãe pega o telefone) O que foi que você disse?!'],stars:1}]},
+{n:'Dona Sueli',from:['你的老板','your boss','sua chefe'],open:['是我，Sueli。今天业绩怎么样？别跟我说废话。','It’s me, Sueli. How are sales today? No waffle.','Sou eu, Sueli. Como estão as vendas hoje? Sem enrolar.'],opts:[
+ {t:['如实汇报目前的营业额','Report the real figure','Dizer o número verdadeiro'],r:['嗯，实话实说，我喜欢。给你记一笔小奖金。','Good. I like honesty. A small bonus for you.','Bom. Gosto de sinceridade. Um premiozinho para você.'],money:12,note:['奖金 US$ 12','Bonus US$ 12','Prêmio de US$ 12']},
+ {t:['「非常好！今天一定超额完成！」','“Fantastic! We’ll smash the target today!”','“Ótimas! Hoje a gente estoura a meta!”'],r:['是吗？那今天的指标给你加 US$ 500。','Really? Then I’m adding US$ 500 to today’s target.','É mesmo? Então a meta de hoje sobe US$ 500.'],target:500,note:['今日指标 +US$ 500','Today’s target +US$ 500','Meta de hoje +US$ 500']},
+ {t:['抱怨客人太难缠','Complain that the callers are impossible','Reclamar que os clientes são impossíveis'],r:['客人永远是对的。回去接电话。','The customer is always right. Back to the phone.','O cliente tem sempre razão. Volta para o telefone.'],note:['老板不太高兴','The boss is not impressed','A chefe não gostou']}]},
+{n:'Seu Zé',from:['打错的电话','wrong number','engano'],open:['Alô，是 Pizzaria Bella Napoli 吗？我要一个大号 calabresa，多放洋葱。','Alô, is that Pizzaria Bella Napoli? One large calabresa, extra onion.','Alô, é da Pizzaria Bella Napoli? Uma calabresa grande, com bastante cebola.'],opts:[
+ {t:['「您打错了，这里是旅行社。不过我们的圣保罗美食周末里有全城最好的披萨！」','“Wrong number, this is a travel agency. But our São Paulo food weekend has the best pizza in town!”','“É engano, aqui é agência de viagens. Mas nosso fim de semana gourmet em São Paulo tem a melhor pizza da cidade!”'],r:['哈哈，会做生意！把号码给我，我回头跟老婆商量。','Haha, nice try! Give me your number, I’ll talk to the wife.','Haha, bom vendedor! Me dá o número, vou falar com a patroa.'],stars:5},
+ {t:['「打错了。」然后挂断','“Wrong number.” Hang up','“É engano.” Desligar'],r:['（嘟——嘟——）','(dial tone)','(tu-tu-tu)'],stars:3},
+ {t:['「好的，四十分钟送到。」','“Certainly, forty minutes.”','“Pois não, quarenta minutos.”'],r:['（一小时后，他又打了回来，非常愤怒。）','(An hour later he rings back, furious.)','(Uma hora depois ele liga de novo, furioso.)'],stars:1}]},
+{n:'Dona Célia',from:['老客户','a regular','cliente antiga'],open:['Oi querido，我订了七月去 Gramado 的行程，可我女儿的婚礼改期了，我想换到八月。','Oi querido, I’m booked for Gramado in July but my daughter’s wedding has moved. Can I switch to August?','Oi querido, tenho Gramado marcado para julho, mas o casamento da minha filha mudou. Dá para passar para agosto?'],opts:[
+ {t:['查条款，如实说明改期费 US$ 30，并帮她办理','Check the terms, explain the US$ 30 change fee and do it','Ver o contrato, explicar a taxa de US$ 30 e remarcar'],r:['规矩我懂，谢谢你说得清清楚楚。','Rules are rules. Thank you for being clear.','Regra é regra. Obrigada pela clareza.'],stars:4},
+ {t:['老客户了，这次免收改期费','She’s a regular: waive the fee this once','Cliente antiga: dispensar a taxa desta vez'],r:['Ai, que amor! 我要把你们推荐给所有姐妹！','Ai, que amor! I’ll recommend you to all my friends!','Ai, que amor! Vou indicar vocês para todas as amigas!'],stars:5,money:-30,note:['你自掏改期费 US$ 30','You pay the US$ 30 fee yourself','Você paga a taxa de US$ 30 do bolso']},
+ {t:['「合同写明不可改期。」','“The contract says no changes.”','“O contrato não permite alteração.”'],r:['我订了十年了，就这样对我？','Ten years a customer and this is what I get?','Dez anos de cliente e é assim que me tratam?'],stars:1}]},
+{n:'Mr. Collins',from:['外国游客','foreign tourist','turista estrangeiro'],open:['Hello? Sorry… do you speak English? I want to see Rio. Two people.','Hello? Sorry… do you speak English? I want to see Rio. Two people.','Hello? Sorry… do you speak English? I want to see Rio. Two people.'],opts:[
+ {t:['"Yes, of course! Rio for two, five days. Let me book that for you."','"Yes, of course! Rio for two, five days. Let me book that for you."','"Yes, of course! Rio for two, five days. Let me book that for you."'],r:['Wonderful! Muito obrigado!（他只会这一句葡语）','Wonderful! Muito obrigado! (the only Portuguese he knows)','Wonderful! Muito obrigado! (é só o que ele sabe de português)'],stars:5,rev:960,n:2,note:['成交：里约经典 × 2','Sold: Classic Rio × 2','Vendido: Rio de Janeiro × 2']},
+ {t:['「Não falo inglês.」然后挂断','“Não falo inglês.” Hang up','“Não falo inglês.” Desligar'],r:['（嘟——嘟——）','(dial tone)','(tu-tu-tu)'],stars:2},
+ {t:['用葡语，很慢、很大声地再说一遍','Repeat it in Portuguese, very slowly and very loudly','Repetir em português, bem devagar e bem alto'],r:['I… I think I will try the hotel concierge. Thank you.','I… I think I will try the hotel concierge. Thank you.','I… I think I will try the hotel concierge. Thank you.'],stars:3}]},
+{n:'Dona Rita',from:['Natal 的酒店前台','a hotel lobby in Natal','recepção de um hotel em Natal'],open:['我到酒店了，前台说根本没有我的预订！我带着两个孩子站在大堂里！','I’m at the hotel and they say there is no reservation! I’m standing in the lobby with two children!','Cheguei no hotel e dizem que não tem reserva! Estou no saguão com duas crianças!'],opts:[
+ {t:['请她别挂，用另一条线直接打给酒店，把预订找出来并要求升级房型','Keep her on the line, ring the hotel on the other line, find the booking and demand an upgrade','Segurar a linha, ligar para o hotel na outra, achar a reserva e exigir um quarto melhor'],r:['……他们找到了，还给了海景房。Ufa! 谢谢你。','…They found it, and gave us a sea view. Ufa! Thank you.','…Acharam, e deram quarto de frente para o mar. Ufa! Obrigada.'],stars:5,money:-20,note:['你垫付差价 US$ 20','You cover a US$ 20 difference','Você cobre US$ 20 de diferença']},
+ {t:['「我发份电传问问，明天回复您。」','“I’ll send a telex and get back to you tomorrow.”','“Vou mandar um telex e amanhã dou retorno.”'],r:['明天？！那我今晚睡哪儿？','Tomorrow?! And where do I sleep tonight?','Amanhã?! E eu durmo onde hoje?'],stars:1},
+ {t:['让她把预订单拿给前台看','Tell her to show reception her voucher','Pedir para mostrar o voucher na recepção'],r:['我试试… 好像行了。可这本该是你们的事。','I’ll try… It seems to work. But that was your job.','Vou tentar… Parece que deu. Mas isso era serviço de vocês.'],stars:3}]},
+{n:'Kleber',from:['电话线推销员','phone-line salesman','vendedor de linha telefônica'],open:['Boa tarde! 恭喜您被选中参加电话线扩容计划！现在装一条线，三年后能翻倍卖出……','Boa tarde! Congratulations, you’ve been selected for the telephone expansion plan! Buy a line now, sell it for double in three years…','Boa tarde! Parabéns, o senhor foi selecionado para o plano de expansão telefônica! Compre uma linha agora e venda pelo dobro em três anos…'],opts:[
+ {t:['礼貌打断：「谢谢，不需要。祝您工作顺利。」','Cut in politely: “No thank you. Good luck with your day.”','Cortar com educação: “Não, obrigado. Bom trabalho.”'],r:['好的，打扰了。','Fine. Sorry to bother you.','Tudo bem. Desculpe o incômodo.'],note:['省下了十分钟','Ten minutes saved','Dez minutos economizados']},
+ {t:['反过来向他推销圣保罗美食周末','Turn it around and sell him the São Paulo food weekend','Virar o jogo e vender o fim de semana gourmet em São Paulo'],r:['呃… 其实我下周正好休假。多少钱？','Er… actually I’m off next week. How much?','Hã… na verdade estou de folga semana que vem. Quanto é?'],stars:5,rev:340,note:['成交：圣保罗美食周末 × 1','Sold: São Paulo food weekend × 1','Vendido: São Paulo Gourmet × 1']},
+ {t:['跟他吵起来','Start an argument','Começar uma discussão'],r:['（他挂了。同事们都在看你。）','(He hangs up. Your colleagues are staring.)','(Ele desliga. Os colegas estão olhando.)'],stars:2}]},
+{n:'Sr. Fernández',from:['阿根廷游客','Argentine tourist','turista argentino'],open:['¡Hola, che! ¿Hablan español? Somos cuatro, queremos playa en Brasil.','¡Hola, che! ¿Hablan español? Somos cuatro, queremos playa en Brasil.','¡Hola, che! ¿Hablan español? Somos cuatro, queremos playa en Brasil.'],opts:[
+ {t:['用 portunhol 热情接待，推荐 Florianópolis','Welcome him in cheerful portunhol and suggest Florianópolis','Atender num portunhol animado e sugerir Florianópolis'],r:['¡Bárbaro! Floripa, cuatro personas. ¡Cerrado!','¡Bárbaro! Floripa, cuatro personas. ¡Cerrado!','¡Bárbaro! Floripa, cuatro personas. ¡Cerrado!'],stars:5,rev:1500,n:4,note:['成交：Florianópolis × 4','Sold: Florianópolis × 4','Vendido: Florianópolis × 4']},
+ {t:['「这里只说葡语。」','“We only speak Portuguese here.”','“Aqui só se fala português.”'],r:['Bueno… chau.','Bueno… chau.','Bueno… chau.'],stars:2},
+ {t:['转给会西语的同事（他去吃午饭了）','Transfer him to the colleague who speaks Spanish (who is at lunch)','Transferir para o colega que fala espanhol (que saiu para almoçar)'],r:['（听筒里放了五分钟等待音乐，对方挂了。）','(Five minutes of hold music. He hangs up.)','(Cinco minutos de musiquinha. Ele desliga.)'],stars:2}]},
+{n:'Dona Lúcia',from:['Congonhas 机场','Congonhas airport','Aeroporto de Congonhas'],open:['我在值机柜台！我带着八岁的孙子，他们问我要孩子的证件，国内航班也要吗？','I’m at check-in with my eight-year-old grandson and they want his papers. On a domestic flight?','Estou no check-in com meu neto de oito anos e pedem o documento dele. Em voo nacional?'],opts:[
+ {t:['冷静说明：要带孩子的出生证明或身份证原件，并问她家里能否马上送来','Calmly explain he needs his original birth certificate or ID, and ask if someone can bring it now','Explicar com calma que precisa da certidão de nascimento ou RG original e perguntar se alguém pode levar agora'],r:['我女儿就在附近，让她送过来！Graças a Deus，谢谢！','My daughter lives nearby, she’ll bring it! Graças a Deus, thank you!','Minha filha mora perto, ela traz! Graças a Deus, obrigada!'],stars:5},
+ {t:['「我不清楚，您问航空公司吧。」','“I’m not sure. Ask the airline.”','“Não sei. Pergunte à companhia.”'],r:['那我在你们这儿订票是为了什么？','Then why did I book with you?','Então para que comprei com vocês?'],stars:1},
+ {t:['「国内航班不用证件，您跟他们说。」','“No papers needed on domestic flights. Tell them.”','“Em voo nacional não precisa. Diga isso a eles.”'],r:['（十分钟后）他们说你讲错了！我们误机了！','(ten minutes later) They say you’re wrong! We missed the flight!','(dez minutos depois) Disseram que você está errado! Perdemos o voo!'],stars:1}]},
+{n:'Repórter Aline',from:['本地报社','local newspaper','jornal da cidade'],open:['您好，有读者说有人冒充你们旅行社，在报纸分类广告上卖假套餐收定金。你们怎么回应？','Hello. Readers say someone posing as your agency sells fake packages through classified ads and pockets the deposits. Your response?','Bom dia. Leitores dizem que alguém se passa pela agência, vende pacote falso nos classificados e fica com o sinal. O que vocês dizem?'],opts:[
+ {t:['说明公司只在门店和这部电话收款，记下线索并上报老板','Explain that the agency only takes payment in the shop and on this number, note the details and tell the boss','Explicar que a agência só recebe na loja e por este telefone, anotar tudo e avisar a chefe'],r:['清楚，谢谢配合。我会把你们的地址写进报道。','Clear. Thank you. I’ll print your address in the story.','Entendido. Obrigada. Vou publicar o endereço de vocês.'],stars:5},
+ {t:['「无可奉告。」挂断','“No comment.” Hang up','“Sem comentários.” Desligar'],r:['（第二天的报纸：旅行社拒绝回应）','(Tomorrow’s paper: agency refuses to comment)','(No jornal de amanhã: agência não quis comentar)'],stars:2},
+ {t:['「可能是我们哪个同事私下干的吧。」','“Maybe one of my colleagues is doing it on the side.”','“Vai ver é algum colega fazendo por fora.”'],r:['……您确定要我这样写？','…Are you sure you want me to print that?','…Tem certeza de que quer que eu publique isso?'],stars:1}]},
+{n:'Jorginho',from:['隔壁工位的同事','the colleague at the next desk','o colega da mesa ao lado'],open:['Psiu! 帮我顶半小时电话，我去买 pão de queijo，给你带一份。老板来了就说我在洗手间。','Psiu! Cover my phone for half an hour while I get pão de queijo. I’ll bring you one. If the boss asks, I’m in the toilet.','Psiu! Segura meu telefone meia hora que vou buscar pão de queijo. Trago um para você. Se a chefe perguntar, estou no banheiro.'],opts:[
+ {t:['答应，但只顶十五分钟','Agree, but only for fifteen minutes','Topar, mas só quinze minutos'],r:['Valeu! 回来请你喝咖啡。','Valeu! Coffee’s on me.','Valeu! O cafezinho é por minha conta.'],money:2,note:['一份奶酪面包，折合 US$ 2','One cheese bread, worth US$ 2','Um pão de queijo, uns US$ 2']},
+ {t:['拒绝：「今天电话太多了。」','Refuse: “Too many calls today.”','Recusar: “Hoje tem ligação demais.”'],r:['Tá bom, tá bom… 小气。','Tá bom, tá bom… stingy.','Tá bom, tá bom… pão-duro.'],note:['同事关系 −1','One friend fewer in the office','Um amigo a menos no escritório']},
+ {t:['打给老板告状','Report him to the boss','Dedurar para a chefe'],r:['（Jorginho 被叫去谈话。之后没人再和你一起吃午饭。）','(Jorginho is called in. Nobody eats lunch with you again.)','(Jorginho é chamado na sala. Ninguém mais almoça com você.)'],note:['办公室气氛变冷','The office turns chilly','O clima no escritório esfria']}]},
+{n:'Dona Aparecida',from:['刚回来的客人','just back from her trip','acabou de voltar de viagem'],open:['我刚从 Bonito 回来！那水清得像玻璃！我一定要打电话谢谢你们！','I’m just back from Bonito! Water like glass! I had to ring and thank you!','Acabei de voltar de Bonito! A água parece vidro! Tinha que ligar para agradecer!'],opts:[
+ {t:['真诚道谢，请她把我们推荐给朋友','Thank her warmly and ask her to recommend us','Agradecer de coração e pedir que indique a agência'],r:['早就推荐了！我嫂子下个月就来找你。','Already have! My sister-in-law will call you next month.','Já indiquei! Minha cunhada liga mês que vem.'],stars:5,money:8,note:['推荐奖金 US$ 8','Referral bonus US$ 8','Bônus de indicação US$ 8']},
+ {t:['「不客气。」然后去接下一通','“You’re welcome.” On to the next call','“De nada.” E partir para a próxima'],r:['哦… 好吧。Tchau.','Oh… all right. Tchau.','Ah… tá. Tchau.'],stars:3},
+ {t:['趁机推销更贵的 Noronha','Seize the moment to sell her Noronha','Aproveitar para empurrar Noronha'],r:['我才刚回来呢！让我歇口气。','I’ve only just got home! Let me breathe.','Acabei de chegar! Deixa eu respirar.'],stars:3}]},
+{n:'Sr. Barbosa',from:['不满的客人','unhappy customer','cliente insatisfeito'],open:['我去 Salvador 五天，下了五天雨！我要求全额退款！','Five days in Salvador and five days of rain! I demand a full refund!','Cinco dias em Salvador e cinco dias de chuva! Quero meu dinheiro de volta!'],opts:[
+ {t:['表示理解，说明天气无法保证，送他下次行程九折券','Sympathise, explain weather can’t be guaranteed, offer 10% off his next trip','Mostrar compreensão, explicar que tempo não se garante e dar 10% na próxima viagem'],r:['Hmm… 九折是吧。行，下次我要去个不下雨的地方。','Hmm… ten per cent. Fine. Next time, somewhere dry.','Hmm… dez por cento. Tá. Na próxima, um lugar seco.'],stars:4},
+ {t:['全额退款','Refund everything','Devolver tudo'],r:['真的？你们这服务没话说。','Really? Now that’s service.','Sério? Isso é que é atendimento.'],stars:5,money:-60,note:['老板从你的提成里扣了 US$ 60','The boss docks US$ 60 from your commission','A chefe desconta US$ 60 da sua comissão']},
+ {t:['「天气关我们什么事？」','“What has the weather got to do with us?”','“E o que nós temos com o tempo?”'],r:['我要去消费者保护局投诉你们！','I’m reporting you to the consumer bureau!','Vou ao Procon!'],stars:1}]},
+{n:'Rádio Paulista FM',from:['电台直播','live on air','ao vivo'],open:['这里是 Rádio Paulista FM 直播连线！请用一句话向听众推荐一个巴西目的地！','You’re live on Rádio Paulista FM! One sentence: recommend a place in Brazil to our listeners!','Você está ao vivo na Rádio Paulista FM! Em uma frase: indique um destino no Brasil!'],opts:[
+ {t:['「Lençóis Maranhenses：白色沙丘之间，躺着几千个蓝色的湖。」','“Lençóis Maranhenses: thousands of blue lagoons lying between white dunes.”','“Lençóis Maranhenses: milhares de lagoas azuis entre dunas brancas.”'],r:['哇，听众热线已经响了！谢谢 Tucano Viagens！','Wow, the phones are already ringing! Thank you, Tucano Viagens!','Uau, os telefones já estão tocando! Obrigado, Tucano Viagens!'],stars:5,rev:580,note:['一位听众当场下单','A listener books on the spot','Um ouvinte compra na hora']},
+ {t:['紧张得说不出话','Freeze completely','Travar de nervoso'],r:['呃… 好的，我们先进一段广告。','Er… right, time for some adverts.','Hã… bom, vamos aos comerciais.'],stars:2},
+ {t:['「我推荐巴黎。」','“I recommend Paris.”','“Eu indico Paris.”'],r:['（主持人大笑。老板也在听。）','(The host roars with laughter. Your boss is listening.)','(O locutor cai na risada. A chefe está ouvindo.)'],stars:1}]},
+{n:'Seu Nelson',from:['带着鹦鹉的客人','a man with a parrot','um senhor com papagaio'],open:['我能带我的鹦鹉 Louro 去 Pantanal 吗？它也想看看亲戚。','Can I take my parrot Louro to the Pantanal? He’d like to see his relatives.','Posso levar meu papagaio Louro para o Pantanal? Ele quer ver os parentes.'],opts:[
+ {t:['认真说明航空公司的规定，建议寄养，并帮他找一家','Explain the airline rules seriously, suggest boarding and help him find a place','Explicar as regras da companhia, sugerir um hotelzinho de bichos e ajudar a achar'],r:['这样啊… 好吧，Louro 就留给我妹妹。谢谢你这么耐心。','I see… well, Louro stays with my sister. Thank you for your patience.','Entendi… então o Louro fica com minha irmã. Obrigado pela paciência.'],stars:5},
+ {t:['「可以，装包里就行。」','“Sure, just pop him in a bag.”','“Pode, é só pôr na sacola.”'],r:['（一周后他在机场被拦下，打电话来骂了你十分钟。）','(A week later he is stopped at the airport and yells at you for ten minutes.)','(Uma semana depois ele é barrado no aeroporto e xinga você por dez minutos.)'],stars:1},
+ {t:['笑到说不出话','Laugh until you can’t speak','Rir até não conseguir falar'],r:['有什么好笑的？Louro 是家人！','What’s so funny? Louro is family!','Qual é a graça? O Louro é da família!'],stars:2}]},
+{n:'Sr. Tadeu',from:['明天出发的客人','leaves tomorrow','viaja amanhã'],open:['新闻说明天去 Ouro Preto 的长途大巴罢工！我的行程怎么办？','The news says the coaches to Ouro Preto are on strike tomorrow! What about my trip?','Deu no jornal que os ônibus para Ouro Preto entram em greve amanhã! E a minha viagem?'],opts:[
+ {t:['改订一辆包车，差价公司承担一半','Switch him to a private van and split the difference','Trocar por uma van e rachar a diferença'],r:['Ótimo! 这样反而更舒服。','Ótimo! Even more comfortable.','Ótimo! Fica até mais confortável.'],stars:5,money:-25,note:['公司承担差价 US$ 25','The agency covers US$ 25','A agência cobre US$ 25']},
+ {t:['帮他免费改期到下周','Move the trip to next week at no charge','Passar para a semana que vem sem custo'],r:['也行，就是假得重新请。','All right, though I’ll have to rearrange my leave.','Tá, mas vou ter que remarcar a folga.'],stars:4},
+ {t:['「罢工是不可抗力，您自己想办法。」','“A strike is force majeure. You’ll have to manage.”','“Greve é força maior. O senhor se vira.”'],r:['那我要你们干什么？','Then what are you for?','Então para que servem vocês?'],stars:1}]},
+{n:'Seu Benedito',from:['一位老先生','an elderly gentleman','um senhor de idade'],open:['我 1954 年去过 Foz do Iguaçu，那时候还得坐船过河呢。你去过吗，年轻人？','I went to Foz do Iguaçu in 1954. We crossed the river by boat back then. Have you been, young one?','Fui a Foz do Iguaçu em 1954. Naquele tempo atravessava de barco. Você já foi, jovem?'],opts:[
+ {t:['耐心听他讲五分钟，再礼貌地结束通话','Listen patiently for five minutes, then end the call kindly','Ouvir com paciência cinco minutos e encerrar com carinho'],r:['你是个好孩子。下次我带老照片来店里给你看。','You’re a good kid. I’ll bring my old photos to the shop.','Você é gente boa. Vou levar minhas fotos antigas na loja.'],stars:5},
+ {t:['「先生，不订行程的话我要挂了。」','“Sir, if you’re not booking I must hang up.”','“Se o senhor não vai comprar, preciso desligar.”'],r:['哦… 对不起，打扰了。','Oh… sorry to trouble you.','Ah… desculpe o incômodo.'],stars:2},
+ {t:['陪他聊了半个小时','Chat with him for half an hour','Conversar meia hora com ele'],r:['（老人很开心。排队的三个电话都挂了。）','(He is delighted. Three callers in the queue hang up.)','(Ele fica feliz. Três clientes na espera desligam.)'],stars:3,note:['老板不太高兴','The boss is not impressed','A chefe não gostou']}]},
+{n:'Dona Neusa',from:['上周询过价的客人','asked for a price last week','pediu preço na semana passada'],open:['上周你们报的克鲁塞罗价钱，今天怎么涨了三成？！你们这是抢钱！','The price in cruzeiros you gave me last week is up by a third today! This is robbery!','O preço em cruzeiros que vocês deram semana passada subiu um terço! Isso é um assalto!'],opts:[
+ {t:['解释价目表按美元定价，今天交定金就能锁定今天的汇率','Explain the list is priced in dollars; a deposit today locks in today’s rate','Explicar que a tabela é em dólar; dando o sinal hoje, trava o câmbio de hoje'],r:['原来是这样… 那我下午就去交定金，免得明天又涨。','So that’s it… I’ll bring the deposit this afternoon, before it rises again.','Ah, é isso… Levo o sinal hoje à tarde, antes que suba de novo.'],stars:5,rev:840,n:2,note:['成交：Salvador × 2','Sold: Salvador × 2','Vendido: Salvador × 2']},
+ {t:['「夫人，是通货膨胀，不关我的事。」','“It’s inflation, madam. Not my fault.”','“É a inflação, senhora. Não tenho culpa.”'],r:['那我的工资怎么没涨三成？','Then why didn’t my wages go up by a third?','E por que meu salário não subiu um terço?'],stars:2},
+ {t:['按上周的克鲁塞罗价卖给她','Sell at last week’s cruzeiro price','Vender pelo preço em cruzeiros da semana passada'],r:['这才对嘛！你是个讲信用的人。','That’s more like it! A person of your word.','Assim sim! Gente de palavra.'],stars:5,rev:840,n:2,money:-35,note:['差价 US$ 35 从你的提成里扣','The US$ 35 difference comes out of your commission','A diferença de US$ 35 sai da sua comissão']}]},
+{n:'Zeca',from:['街边公用电话','a street payphone','um orelhão'],open:['我只剩最后一枚电话币了！快：两个人去 Rio 多少钱？','I’m on my last phone token! Quick: how much is Rio for two?','Estou na última ficha! Rápido: quanto é o Rio para dois?'],opts:[
+ {t:['「每人 480 美元，五天。来店里，Avenida Paulista！」','“480 dollars each, five days. Come to the shop, Avenida Paulista!”','“480 dólares cada, cinco dias. Passa na loja, Avenida Paulista!”'],r:['记住了！我明天就——（嘟）','Got it! I’ll be there tomor— (click)','Anotado! Amanhã eu pass— (tu-tu-tu)'],stars:5,rev:960,n:2,note:['第二天他真的来了：里约 × 2','He really did turn up: Rio × 2','Ele apareceu mesmo: Rio × 2']},
+ {t:['从头给他念目录','Start reading him the catalogue from the top','Começar a ler a tabela desde o início'],r:['等等，我的币——（嘟）','Wait, my token— (click)','Espera, a ficha— (tu-tu-tu)'],stars:2},
+ {t:['「您换了电话币再打来吧。」','“Call back when you have more tokens.”','“Liga de novo quando tiver mais ficha.”'],r:['（他没有再打来。）','(He never calls back.)','(Ele não liga mais.)'],stars:3}]},
+{n:'Hotel Pelourinho',from:['Salvador 的酒店','a hotel in Salvador','um hotel em Salvador'],open:['你们发来的订房传真糊成一片，名字和日期都看不清。客人明天就到。','The reservation fax you sent is a black smudge. We can’t read the names or dates. The guests arrive tomorrow.','O fax da reserva chegou todo borrado. Não dá para ler nome nem data. Os hóspedes chegam amanhã.'],opts:[
+ {t:['重发传真，并在电话里逐项念一遍确认','Resend the fax and read every line over the phone to confirm','Reenviar o fax e confirmar item por item pelo telefone'],r:['好，都记下了。Tudo certo.','Good, all noted. Tudo certo.','Ótimo, anotei tudo. Tudo certo.'],stars:5},
+ {t:['「我们已经发过了，是你们机器的问题。」','“We already sent it. The problem is your machine.”','“Já mandamos. O problema é a máquina de vocês.”'],r:['那明天客人来了没房，别怪我们。','Then don’t blame us when there’s no room tomorrow.','Depois não reclame se amanhã não tiver quarto.'],stars:1},
+ {t:['改用电传再发一遍','Send it again by telex instead','Mandar de novo por telex'],r:['电传收到了。慢是慢了点，但清楚。','Telex received. Slow, but legible.','Telex recebido. Demorou, mas dá para ler.'],stars:4}]},
+{n:'Sr. Peixoto',from:['来确认预订的客人','confirming his booking','confirmando a reserva'],open:['我想确认一下我下周的行程……喂？你那边怎么这么黑？','I’d like to confirm next week’s trip… Hello? Why is it so dark over there?','Queria confirmar minha viagem da semana que vem… Alô? Por que está tão escuro aí?'],opts:[
+ {t:['「停电了。我把您的姓名和日期手写记下，来电后马上回电。」','“Power cut. I’ll write your name and dates by hand and ring you back when it returns.”','“Faltou luz. Anoto seu nome e as datas à mão e ligo assim que voltar.”'],r:['好，我等你电话。你们还挺靠谱。','Good, I’ll wait. You people are reliable.','Certo, fico esperando. Vocês são confiáveis.'],stars:5},
+ {t:['「系统用不了，您明天再打吧。」','“The system is down. Call tomorrow.”','“O sistema caiu. Liga amanhã.”'],r:['我明天要上班！','I work tomorrow!','Amanhã eu trabalho!'],stars:2},
+ {t:['凭记忆告诉他「都订好了」','Tell him from memory that it’s all booked','Dizer de cabeça que está tudo reservado'],r:['（并没有订好。）','(It was not all booked.)','(Não estava tudo reservado.)'],stars:1}]},
+{n:'Sr. Moacir',from:['想分期的客人','wants to pay in instalments','quer parcelar'],open:['我想订两个人去 Salvador，但得用三张远期支票付，行吗？','I want Salvador for two, but I need to pay with three post-dated cheques. All right?','Quero Salvador para dois, mas preciso pagar com três cheques pré-datados. Pode ser?'],opts:[
+ {t:['可以，每张支票按到期当天的美元汇率折算','Yes, each cheque converted at the dollar rate on its date','Pode, cada cheque pelo dólar do dia do vencimento'],r:['公道。那就这么办。','Fair enough. Let’s do it.','Justo. Vamos fazer assim.'],stars:5,rev:840,n:2,note:['成交：Salvador × 2','Sold: Salvador × 2','Vendido: Salvador × 2']},
+ {t:['「只收现金。」','“Cash only.”','“Só em dinheiro.”'],r:['这年头谁身上有那么多现金？','Who carries that much cash these days?','Quem anda com tanto dinheiro hoje em dia?'],stars:2},
+ {t:['可以，三张都按今天的克鲁塞罗价','Yes, all three at today’s cruzeiro price','Pode, os três pelo preço de hoje em cruzeiros'],r:['太好了！你们真大方！','Wonderful! How generous!','Maravilha! Que generosidade!'],stars:4,rev:840,n:2,money:-50,note:['通胀吃掉了 US$ 50，老板很生气','Inflation eats US$ 50 and the boss is furious','A inflação come US$ 50 e a chefe fica furiosa']}]},
+{n:'Dudu',from:['赛车迷','motor-racing fan','fã de automobilismo'],open:['我要去 Interlagos 看 F1 巴西大奖赛！你们有带门票的套餐吗？','I’m going to Interlagos for the Brazilian Grand Prix! Do you have a package with tickets?','Vou a Interlagos ver o Grande Prêmio do Brasil! Vocês têm pacote com ingresso?'],opts:[
+ {t:['卖给他圣保罗周末 × 2，并说明门票要在赛道售票处另买','Sell him the São Paulo weekend × 2 and explain tickets are bought separately at the circuit','Vender o fim de semana em São Paulo × 2 e avisar que o ingresso se compra no autódromo'],r:['没问题，只要能看到 Senna！','No problem, as long as I see Senna!','Sem problema, contanto que eu veja o Senna!'],stars:5,rev:520,n:2,note:['成交：圣保罗周末 × 2','Sold: São Paulo weekend × 2','Vendido: São Paulo × 2']},
+ {t:['「包门票，还能进维修区见车手。」','“Tickets included, and you’ll meet the drivers in the pits.”','“Com ingresso, e ainda conhece os pilotos no box.”'],r:['（比赛当天，他从赛道门口打来电话。场面很难看。）','(On race day he rings from the circuit gate. It is not pretty.)','(No dia da corrida ele liga do portão do autódromo. Não é bonito.)'],stars:1},
+ {t:['「我们不做体育。」','“We don’t do sport.”','“Não trabalhamos com esporte.”'],r:['那算了。','Never mind, then.','Então deixa.'],stars:2}]},
+{n:'Dona Vera',from:['体育迷','sports fan','fã de esporte'],open:['你们有去巴塞罗那看奥运会的团吗？我想看排球！','Do you have a tour to the Barcelona Olympics? I want to see the volleyball!','Vocês têm excursão para a Olimpíada de Barcelona? Quero ver o vôlei!'],opts:[
+ {t:['说明我们只做巴西国内线，把合作的国际旅行社电话给她，再留下我们的小册子','Explain we only sell Brazil, give her the number of a partner agency and offer to post our brochure','Explicar que só vendemos Brasil, passar o telefone de uma agência parceira e oferecer o folheto pelo correio'],r:['谢谢你这么实在。小册子寄给我吧。','Thank you for being straight with me. Do send the brochure.','Obrigada pela franqueza. Pode mandar o folheto.'],stars:4},
+ {t:['随口编一个价钱','Make up a price','Inventar um preço'],r:['（她来店里交钱。老板的脸色很精彩。）','(She comes in to pay. The boss’s face is a picture.)','(Ela vem pagar. A cara da chefe é impagável.)'],stars:1},
+ {t:['「巴塞罗那？我们连阿根廷都不卖。」','“Barcelona? We don’t even sell Argentina.”','“Barcelona? A gente não vende nem Argentina.”'],r:['用不着这么说话。','There’s no need for that tone.','Não precisa falar assim.'],stars:2}]},
+{n:['会议秘书处','Conference office','Secretaria do congresso'],from:['里约的国际会议','an international conference in Rio','um congresso internacional no Rio'],open:['会议结束后，两位外国代表想在里约附近的自然里待三四天。有什么推荐？','After the conference two foreign delegates want three or four days in nature near Rio. What do you suggest?','Depois do congresso, dois delegados estrangeiros querem três ou quatro dias de natureza perto do Rio. O que vocês sugerem?'],opts:[
+ {t:['Paraty 与 Ilha Grande：四天，离里约不远','Paraty and Ilha Grande: four days, not far from Rio','Paraty e Ilha Grande: quatro dias, pertinho do Rio'],r:['Perfeito. 请开两个人的单。','Perfeito. Please invoice for two.','Perfeito. Pode faturar para dois.'],stars:5,rev:720,n:2,note:['成交：Paraty × 2','Sold: Paraty × 2','Vendido: Paraty × 2']},
+ {t:['Monte Roraima：八天远征','Mount Roraima: an eight-day expedition','Monte Roraima: expedição de oito dias'],r:['八天？他们周五就要飞回去了。','Eight days? They fly home on Friday.','Oito dias? Eles voltam na sexta.'],stars:2},
+ {t:['「我们不接团体散客。」','“We don’t take that kind of booking.”','“Não fazemos esse tipo de reserva.”'],r:['好吧，我问别家。','Very well, I’ll ask elsewhere.','Tudo bem, procuro outra.'],stars:2}]},
+{n:'Sra. Odete',from:['Manaus 机场','Manaus airport','Aeroporto de Manaus'],open:['我到 Manaus 了，可我的行李去了 Porto Alegre！我连牙刷都没有！','I’ve landed in Manaus but my suitcase went to Porto Alegre! I don’t even have a toothbrush!','Cheguei em Manaus, mas minha mala foi para Porto Alegre! Não tenho nem escova de dente!'],opts:[
+ {t:['用另一条线联系航空公司行李处，安排送到酒店，并给她一笔应急零用','Ring the airline’s baggage desk on the other line, have it delivered to her hotel and give her an emergency allowance','Ligar para o setor de bagagem na outra linha, mandar entregar no hotel e dar uma ajuda de emergência'],r:['你救了我的假期。Muito obrigada!','You’ve saved my holiday. Muito obrigada!','Você salvou minhas férias. Muito obrigada!'],stars:5,money:-15,note:['应急零用 US$ 15','Emergency allowance US$ 15','Ajuda de emergência US$ 15']},
+ {t:['让她在机场填行李遗失单','Tell her to fill in the lost-luggage form at the airport','Mandar preencher o formulário de extravio no aeroporto'],r:['填了。然后呢？就这样？','Done. And then? That’s all?','Preenchi. E agora? Só isso?'],stars:3},
+ {t:['「行李是航空公司的事。」','“Luggage is the airline’s business.”','“Mala é com a companhia aérea.”'],r:['你们都一个样！','You’re all the same!','Vocês são todos iguais!'],stars:1}]},
+{n:'Sr. Ivo',from:['已订行程的客人','already booked','já tem reserva'],open:['我订了和老婆去 Foz 的行程。现在丈母娘说她也要去。我想取消。','I booked Foz with my wife. Now my mother-in-law says she’s coming too. I want to cancel.','Reservei Foz com minha mulher. Agora a sogra disse que vai junto. Quero cancelar.'],opts:[
+ {t:['建议不取消，加订一个人，并给丈母娘安排单独一间','Suggest keeping the trip, adding a third person and giving the mother-in-law her own room','Sugerir manter a viagem, incluir mais uma pessoa e dar um quarto só para a sogra'],r:['单独一间… 你是个天才。加上吧。','Her own room… You’re a genius. Add her.','Um quarto só para ela… Você é um gênio. Inclui.'],stars:5,rev:380,note:['加订：Foz × 1','Added: Foz × 1','Incluído: Foz × 1']},
+ {t:['按合同扣取消费后办理取消','Cancel and charge the fee in the contract','Cancelar e cobrar a multa do contrato'],r:['行吧。至少我省了三天的唠叨。','Fine. At least I’m spared three days of nagging.','Tá. Pelo menos escapo de três dias de falação.'],stars:3},
+ {t:['给他一些婚姻建议','Offer him marriage advice','Dar conselho matrimonial'],r:['我打的是旅行社，不是电台的情感节目。','I rang a travel agency, not an agony aunt.','Liguei para agência de viagem, não para consultório sentimental.'],stars:2}]},
+{n:['话务员','Operator','Telefonista'],from:['对方付费电话，来自 Pantanal','a reverse-charge call from the Pantanal','chamada a cobrar do Pantanal'],open:['「对方付费电话，接听请勿挂机。」……是我，向导 Tião！通往营地的路被水冲断了，明天的团怎么办？','“Reverse-charge call; stay on the line to accept.” …It’s Tião, the guide! The road to the lodge has washed out. What about tomorrow’s group?','“Chamada a cobrar; para aceitar, continue na linha.” …É o Tião, o guia! A estrada da pousada caiu. E o grupo de amanhã?'],opts:[
+ {t:['接受付费，让他改用船把团接进去，并通知客人早一小时出发','Accept the charge, have him bring the group in by boat and warn them to leave an hour early','Aceitar a cobrança, mandar buscar o grupo de barco e avisar que saem uma hora mais cedo'],r:['船我有！这样行。我这就去准备。','I have boats! That works. I’ll get ready.','Barco eu tenho! Dá certo. Vou preparar.'],stars:5,money:-5,note:['长途话费 US$ 5','Long-distance charge US$ 5','Interurbano de US$ 5']},
+ {t:['一听是对方付费就挂断','Hang up as soon as you hear “reverse-charge”','Desligar ao ouvir “a cobrar”'],r:['（第二天，十二位客人困在了半路。）','(Next day twelve clients are stranded halfway.)','(No dia seguinte, doze clientes ficam no meio do caminho.)'],stars:1},
+ {t:['接受付费，然后慌了：「那怎么办？！」','Accept the charge, then panic: “What do we do?!”','Aceitar a cobrança e entrar em pânico: “E agora?!”'],r:['你问我？算了，我自己想办法。','You’re asking me? Never mind, I’ll sort it out.','Você pergunta para mim? Deixa, eu me viro.'],stars:3}]},
+{n:'Marlene',from:['财务部的同事','a colleague from accounts','colega da contabilidade'],open:['周日的球赛，办公室凑份子猜比分，一人一美元。你猜几比几？','Office sweepstake on Sunday’s match, a dollar each. What’s your score?','Bolão do escritório para o jogo de domingo, um dólar cada. Qual é o seu placar?'],opts:[
+ {t:['参加：「2 比 1。」','Join in: “2–1.”','Entrar: “2 a 1.”'],r:['记下了！周一见分晓。','Noted! We’ll know on Monday.','Anotado! Segunda a gente vê.'],money:-1,note:['凑份子 US$ 1','Sweepstake US$ 1','Bolão: US$ 1']},
+ {t:['婉拒：「我在接电话，下次吧。」','Decline: “I’m on the phones. Next time.”','Recusar: “Estou no telefone. Fica para a próxima.”'],r:['好吧，工作狂。','All right, workaholic.','Tá bom, caxias.'],note:['你继续接电话','Back to the phones','De volta ao telefone']},
+ {t:['教育她上班时间不该赌球','Lecture her about gambling at work','Dar sermão sobre jogo no expediente'],r:['（整个办公室都听见了。）','(The whole office heard.)','(O escritório inteiro ouviu.)'],note:['办公室气氛变冷','The office turns chilly','O clima no escritório esfria']}]}
+];
+const LV=[
+ ['新年第一天上班。客人不多，先熟悉问候、提问和报价。','First day of the year. Few calls: learn to greet, ask and offer.','Primeiro dia do ano. Poucas ligações: aprenda a cumprimentar, perguntar e oferecer.'],
+ ['狂欢节月。客人开始有忌讳了：怕雨、怕冷、怕热、晕船、走不动。记得问。','Carnival month. Callers now have limits: rain, cold, heat, boats, hard hikes. Ask.','Mês do Carnaval. Os clientes agora têm restrições: chuva, frio, calor, barco, trilha. Pergunte.'],
+ ['从今天起每天有一个大区发布天气预警。「下周就走」的客人别送去那里。','From today one region has a weather warning each day. Don’t send “leaving next week” callers there.','A partir de hoje uma região fica em alerta por dia. Não mande para lá quem “viaja semana que vem”.'],
+ ['圣保罗有 F1 大奖赛，电话多了起来。','The Grand Prix is in São Paulo and the phones are busier.','Tem Grande Prêmio em São Paulo e o telefone toca mais.'],
+ ['东北部进入雨季。北部的河滩也被淹了。看清目录上的淡季。','Rainy season in the Northeast, and the northern river beaches are under water. Read the off-season notes.','Época de chuva no Nordeste, e as praias de rio do Norte estão cobertas. Leia a baixa temporada.'],
+ ['六月：里约开环境大会，帕林廷斯有红蓝牛节，南部开始冷了。','June: the Earth Summit in Rio, the ox festival in Parintins, and the South turns cold.','Junho: Eco-92 no Rio, festival em Parintins, e o Sul esfria.'],
+ ['寒假高峰。家庭客人多，千湖沙漠正是好时候。','Winter holidays. Lots of families, and the lagoons of Lençóis are full.','Férias de julho. Muita família, e as lagoas dos Lençóis estão cheias.'],
+ ['座头鲸到了 Abrolhos。中西部又干又热。','The humpbacks are at Abrolhos. The Centre-West is dry and hot.','As jubartes chegaram a Abrolhos. O Centro-Oeste está seco e quente.'],
+ ['全国都在看电视上的国会直播，可电话照样响。','The whole country is watching Congress on television, but the phones still ring.','O país inteiro está vendo o Congresso na TV, mas o telefone continua tocando.'],
+ ['汇率已经是年初的七倍。客人比以前更着急。','The dollar is seven times what it was in January. Callers are in more of a hurry.','O dólar vale sete vezes o de janeiro. Os clientes têm mais pressa.'],
+ ['雨季回到中部。年底的旅行都要现在订。','The rains are back in the centre. Year-end trips are booked now.','As chuvas voltaram ao centro. As viagens de fim de ano se vendem agora.'],
+ ['圣诞和新年。全年最忙的一天，也是最后一关。','Christmas and New Year. The busiest day of the year, and the last level.','Natal e Ano-Novo. O dia mais cheio do ano, e a última fase.']
+];
+const ACH={
+ first:[['第一单','First sale','Primeira venda'],['卖出第一份行程','Sell your first trip','Venda a primeira viagem']],
+ combo:[['金牌嗓音','Golden voice','Voz de ouro'],['连续 5 通电话拿到 4 星以上','Five calls in a row rated 4 stars or more','Cinco ligações seguidas com 4 estrelas ou mais']],
+ nor:[['群岛推销员','Island broker','Vendedor de ilha'],['卖出 Fernando de Noronha','Sell Fernando de Noronha','Venda Fernando de Noronha']],
+ regs:[['走遍巴西','All over Brazil','O Brasil inteiro'],['五个大区各卖出一单','Sell a trip in each of the five regions','Venda uma viagem em cada uma das cinco regiões']],
+ group:[['大巴坐满','Full coach','Ônibus lotado'],['卖给 6 人以上的团体','Sell to a party of six or more','Venda para um grupo de seis ou mais']],
+ speed:[['快嘴','Fast talker','Rápido no gatilho'],['客人耐心还剩 80% 以上时成交','Close a sale with 80% patience or more left','Feche uma venda com 80% de paciência ou mais']],
+ ex:[['加购达人','Extras, extras','Rei do adicional'],['累计卖出 10 项附加服务','Sell ten extras in total','Venda dez extras no total']],
+ hag:[['铁齿铜牙','No discounts','Não dou desconto'],['讨价还价时 5 次成功守住原价','Hold the price five times when a caller haggles','Segure o preço cinco vezes na pechincha']],
+ album:[['明信片收藏家','Postcard collector','Colecionador de postais'],['集齐 33 张明信片','Collect all 33 postcards','Junte os 33 postais']],
+ year:[['1992 年度员工','Employee of 1992','Funcionário do Ano 1992'],['闯关模式通关十二个月','Clear all twelve months of the campaign','Vença os doze meses da campanha']],
+ end10k:[['提成大户','Big earner','Comissão gorda'],['无尽模式单局提成达到 US$ 2,500','Earn US$ 2,500 commission in one endless run','Ganhe US$ 2.500 de comissão numa partida sem fim']]
+};
+const QS={
+ budget:{q:'Qual é o seu orçamento?',tr:['您的预算是多少？','What is your budget?'],lab:['预算','Budget','Orçamento']},
+ days:{q:'Quantos dias de viagem?',tr:['打算玩几天？','How many days?'],lab:['天数','Days','Dias']},
+ who:{q:'Quantas pessoas vão viajar?',tr:['几位出行？','How many travellers?'],lab:['人数','Party','Pessoas']},
+ like:{q:'O que vocês gostam de fazer?',tr:['喜欢什么样的旅行？','What do you enjoy?'],lab:['喜好','Likes','Gostos']},
+ month:{q:'Em que mês pretendem ir?',tr:['打算几月出发？','Which month?'],lab:['月份','Month','Mês']},
+ restr:{q:'Alguma restrição?',tr:['有什么忌讳吗？','Anything to avoid?'],lab:['忌讳','Limits','Restrições']}
+};
+const U={
+sub:['圣保罗 · Avenida Paulista · 1992 年','São Paulo · Avenida Paulista · 1992','São Paulo · Avenida Paulista · 1992'],
+intro:['1992 年的巴西没有互联网，订旅行全靠电话。你是旅行社 Tucano Viagens（虚构）的新接线员。货币是克鲁塞罗，物价一天一个样，所以目录用美元标价。电话一响，客人的耐心就开始流失。','Brazil, 1992. No internet: holidays are sold by telephone. You are the new operator at Tucano Viagens (a fictional agency). The currency is the cruzeiro and prices change daily, so the catalogue is in dollars. Once the phone rings, the caller’s patience starts to drain.','Brasil, 1992. Sem internet: viagem se vende por telefone. Você é o novo atendente da Tucano Viagens (agência fictícia). A moeda é o cruzeiro e o preço muda todo dia, por isso a tabela é em dólar. Quando o telefone toca, a paciência do cliente começa a acabar.'],
+r1:['<b>先问候。</b>看时钟：12 点前 <i>Bom dia</i>，12–18 点 <i>Boa tarde</i>，18 点后 <i>Boa noite</i>。','<b>Greet first.</b> Check the clock: <i>Bom dia</i> before noon, <i>Boa tarde</i> from 12 to 18, <i>Boa noite</i> after.','<b>Cumprimente.</b> Olhe o relógio: <i>Bom dia</i> até meio-dia, <i>Boa tarde</i> das 12 às 18, <i>Boa noite</i> depois.'],
+r2:['<b>再提问。</b>预算、天数、人数、喜好、月份、忌讳。每问一句扣 6% 耐心，瞎猜更危险。','<b>Then ask.</b> Budget, days, party, likes, month, limits. Each question costs 6% patience; guessing costs more.','<b>Pergunte.</b> Orçamento, dias, pessoas, gostos, mês, restrições. Cada pergunta custa 6% de paciência; chutar custa mais.'],
+r3:['<b>然后报价。</b>33 个目的地都标在巴西地图上，悬停可看插画和详情。人数会改变单价：单人加价，四人以上有团体价。还要看天数和兴趣。','<b>Then offer.</b> All 33 destinations are on the map of Brazil; hover for a postcard and details. Party size changes the price: solo travellers pay more, groups of four or more pay less. Mind days and tastes too.','<b>Ofereça.</b> Os 33 destinos estão no mapa do Brasil; passe o mouse para ver o cartão-postal. O número de pessoas muda o preço: sozinho paga mais, grupo de quatro ou mais paga menos. Olhe também dias e gostos.'],
+r4:['<b>看天气。</b>每个目的地有雨季、冷季、酷热期和淡季；冬天去南部海滩下不了水。','<b>Mind the weather.</b> Each place has rainy, cold, scorching and off seasons; southern beaches are no good in winter.','<b>Olhe o tempo.</b> Cada destino tem época de chuva, frio, calorão e baixa temporada; praia do Sul no inverno não dá.'],
+r5:['<b>看预警。</b>每天有一个大区发布天气预警，「下周就走」的客人不能送去那里。','<b>Mind the warning.</b> One region has a weather warning each day; don’t send anyone there who leaves next week.','<b>Olhe o alerta.</b> Todo dia uma região fica em alerta; não mande para lá quem viaja na semana que vem.'],
+r6:['<b>成交后</b>可以推销一项当地项目、保险或接送，对胃口的才会买。提成是营业额的 8%。','<b>After the sale</b> you may pitch one local activity, insurance or a transfer. They only buy what suits them. Commission is 8% of sales.','<b>Depois da venda</b> ofereça um passeio, seguro ou transfer. Só compram o que combina. A comissão é 8% das vendas.'],
+camp:['闯关模式','Campaign','Campanha'],campSub:['1992 年的十二个月，一月一关','Twelve months of 1992, one level each','Os doze meses de 1992, uma fase cada'],
+endl:['无尽模式','Endless','Sem fim'],endlSub:['三条命，比总提成；按目录原价每人计，人数不影响','Three lives. Scored on commission at list price per person, so party size doesn’t matter','Três vidas. Vale a comissão pelo preço de tabela por pessoa: o tamanho do grupo não pesa'],
+best:['无尽模式最高提成','Endless best commission','Recorde de comissão no modo sem fim'],pickLv:['选择月份','Choose a month','Escolha o mês'],back:['返回','Back','Voltar'],
+clock:['时钟','Clock','Hora'],rev:['营业额','Sales','Vendas'],com:['提成','Commission','Comissão'],rep:['口碑','Rating','Avaliação'],lives:['生命','Lives','Vidas'],
+sndOn:['铃声：开','Ring: on','Toque: ligado'],sndOff:['铃声：关','Ring: off','Toque: desligado'],menu:['菜单','Menu','Menu'],
+pat:['客人耐心','Caller’s patience','Paciência do cliente'],
+mapT:['巴西地图（悬停或点一下看详情，再点定位到目录）','Map of Brazil (hover or tap for details, tap again to find it in the catalogue)','Mapa do Brasil (passe o mouse ou toque para ver, toque de novo para achar na tabela)'],how:['玩法说明','How to play','Como jogar'],tCall:['通话','Call','Ligação'],tCat:['目录','Catalogue','Tabela'],tMap:['地图','Map','Mapa'],
+legAl:['红色虚线圈 = 今日预警区','Dashed red ring = today’s warning','Anel vermelho = região em alerta'],
+notesT:['客户笔记','Caller notes','Anotações'],catT:['线路目录（美元，双人同行每人价）','Catalogue (US$ per person, two sharing)','Tabela de preços (US$ por pessoa em quarto duplo)'],priceRule:['人数决定单价：1 人单间加价 30%，2–3 人原价，4–5 人团体价 −6%，6 人以上 −12%。问清人数后，目录会显示该客人的实际单价和总价。','Party size sets the price: one traveller pays a 30% single supplement, 2–3 pay list price, 4–5 get 6% off, 6 or more get 12% off. Once you know the party size, the catalogue shows that caller’s real price and total.','O número de pessoas define o preço: sozinho paga 30% a mais (quarto individual), 2–3 pagam a tabela, 4–5 têm 6% de desconto, 6 ou mais têm 12%. Sabendo quantos são, a tabela mostra o preço real e o total.'],single:['单间加价','single supplement','quarto individual'],group:['团体价','group rate','preço de grupo'],all:['全部','All','Todos'],quote:['报价','Offer','Oferecer'],
+notyet:['？ 还没问','? not asked','? não perguntou'],idle:['接听后在这里记录客人的需求。','Answers appear here once you pick up.','As respostas aparecem aqui quando você atender.'],notSale:['这通电话不是来订行程的。','This caller isn’t booking a trip.','Esta ligação não é para comprar viagem.'],note:['备注','Note','Nota'],
+total:['合计','total','total'],perP:[' / 人',' each',' por pessoa'],upTo:['最多 {D} 天','up to {D} days','até {D} dias'],ppl:['{P} 人','{P} people','{P} pessoas'],none:['无','None','Nenhuma'],no:['不要','No ','Sem '],
+soon:['近期出发，注意预警','leaving soon: check the warning','viaja já: veja o alerta'],d:['天','days','dias'],
+wxT:['天气与汇率','Weather and exchange rate','Tempo e câmbio'],wxDate:['{Y} 年 {M}','{M} {Y}','{M} de {Y}'],
+wxAl:['今日预警：<b>{R}{A}</b>。近期出发的客人不要送去那里。','Warning today: <b>{A} in the {R}</b>. Don’t send anyone there who is leaving soon.','Alerta de hoje: <b>{A} no {R}</b>. Não mande para lá quem viaja já.'],wxNo:['今日无预警。','No weather warning today.','Sem alerta hoje.'],
+rainL:['雨季','Rainy','Chuva'],coldL:['偏冷','Cold','Frio'],hotL:['酷热','Very hot','Calorão'],offL:['淡季','Off-season','Baixa temporada'],hardL:['需要体力','Strenuous','Exige preparo'],boatL:['含乘船','Boat trips','Tem barco'],allYear:['全年适宜','Good all year','Bom o ano todo'],actsL:['项目','Activities','Passeios'],
+sOff:['✖ {M}是淡季','✖ {M} is off-season','✖ {M} é baixa temporada'],sAl:['⚠ 本周{R}{A}','⚠ {A} in the {R} this week','⚠ {A} no {R} esta semana'],sRain:['☔ {M}雨季','☔ rainy in {M}','☔ chuva em {M}'],sCold:['❄ {M}偏冷','❄ cold in {M}','❄ frio em {M}'],sHot:['♨ {M}酷热','♨ scorching in {M}','♨ calorão em {M}'],sOk:['☀ {M}天气好','☀ fine in {M}','☀ tempo bom em {M}'],
+ringing:['Trim-trim… 电话响了。现在是 {T}。','Trim-trim… The phone is ringing. It is {T}.','Trim-trim… O telefone toca. São {T}.'],incoming:['来电…','Incoming call…','Chamada…'],
+callN:['第 {I} / {N} 通','Call {I} of {N}','Ligação {I} de {N}'],callE:['第 {I} 通','Call {I}','Ligação {I}'],
+answerB:['接听 Atender','Pick up (Atender)','Atender'],greetTip:['看一眼时钟，选对问候语：','Check the clock and pick the right greeting:','Olhe o relógio e escolha o cumprimento:'],
+greetWrong:['现在是 {T}，应该说 {G}。','It is {T}; you should have said {G}.','São {T}; o certo era {G}.'],respond:['你怎么回应？','How do you respond?','O que você responde?'],
+askTip:['提问（每问一句，耐心 −6%），或直接在目录里点「报价」：','Ask (each question costs 6% patience) or go straight to Offer in the catalogue:','Pergunte (cada pergunta custa 6% de paciência) ou vá direto em Oferecer na tabela:'],
+askDone:['都问清楚了。在目录里点「报价」：','You know everything. Make an offer from the catalogue:','Já sabe tudo. Faça a oferta na tabela:'],
+offerMe:['我推荐 <b>{P}</b>，{D} 天，合计 {C}。','I suggest <b>{P}</b>: {D} days, {C} in total.','Sugiro <b>{P}</b>: {D} dias, {C} no total.'],
+sold:['成交 {C}','Sold: {C}','Vendido: {C}'],rejected:['报价被拒，耐心 −22%。','Offer rejected. Patience −22%.','Oferta recusada. Paciência −22%.'],
+upTip:['要不要顺便推销一项？只能选一样，对胃口的才会买。','Pitch one extra? Only one. They buy what suits them.','Oferecer um extra? Só um. Eles compram o que combina.'],
+local:['当地项目','Local activity','Passeio local'],seg:['旅行保险','Travel insurance','Seguro viagem'],trans:['机场接送','Airport transfer','Transfer'],noUp:['不推销，祝旅途愉快','No extras. Wish them a good trip','Sem extras. Desejar boa viagem'],
+upMe:['需要加一项「{E}」吗？每人 {C}。','Would you like to add “{E}”? {C} each.','Quer incluir “{E}”? {C} por pessoa.'],byeMe:['Boa viagem! 祝您旅途愉快！','Boa viagem! Have a wonderful trip!','Boa viagem!'],
+upOver:['超出预算，口碑 −1 ★','Over budget. Rating −1 ★','Estourou o orçamento. Avaliação −1 ★'],upAdd:['附加 +{C}','Extra +{C}','Extra +{C}'],
+hung:['客人挂断了电话。','The caller hung up.','O cliente desligou.'],hungH:['客人挂断','Hung up','Desligou'],
+life:['失去一条命，还剩 {L} 条。','You lose a life. {L} left.','Você perde uma vida. Restam {L}.'],
+revE:['原价累计','List-price sales','Vendas pela tabela'],resE:['计分（目录原价）{R} · 提成 {C}','Counted at list price {R} · Commission {C}','Contado pela tabela {R} · Comissão {C}'],
+res:['营业额 {R} · 提成 {C}','Sales {R} · Commission {C}','Vendas {R} · Comissão {C}'],
+nextB:['挂机，等下一通电话','Hang up and wait for the next call','Desligar e esperar a próxima'],endB:['下班，看结算','Clock off and see the results','Fechar o dia e ver o resultado'],
+newDay:['新的一天：{D}。美元又涨了。','A new day: {D}. The dollar is up again.','Novo dia: {D}. O dólar subiu de novo.'],
+good:['处理得当','Handled well','Bem resolvido'],badH:['处理欠佳','Handled badly','Mal resolvido'],
+resT:['{M} · 结算','{M} · Results','{M} · Resultado'],pass:['指标<em>完成</em>！','Target <em>met</em>!','Meta <em>batida</em>!'],failT:['指标没完成','Target missed','Meta não batida'],target:['指标','Target','Meta'],
+thCall:['来电','Caller','Cliente'],thRes:['结果','Outcome','Resultado'],thRate:['评价','Rating','Nota'],
+nextL:['下一关：{M}','Next level: {M}','Próxima fase: {M}'],retry:['重试本关','Retry this level','Tentar de novo'],toLv:['选关','Levels','Fases'],toMenu:['回主菜单','Main menu','Menu principal'],
+champ:['十二个月全部通关！Dona Sueli 把你的照片挂在了前台：Funcionário do Ano 1992。','All twelve months cleared! Dona Sueli hangs your photo in reception: Funcionário do Ano 1992.','Os doze meses vencidos! Dona Sueli pendura sua foto na recepção: Funcionário do Ano 1992.'],
+over:['下班了','Shift over','Fim do expediente'],overP:['三位客人被你气跑了，Dona Sueli 让你先回家。','Three callers gave up on you. Dona Sueli sends you home.','Três clientes desistiram. Dona Sueli manda você para casa.'],
+score:['总提成','Commission earned','Comissão total'],lasted:['坚持天数 {D} · 接听 {N} 通','Days survived: {D} · Calls taken: {N}','Dias de trabalho: {D} · Ligações: {N}'],newBest:['新纪录！','New record!','Novo recorde!'],again:['再来一次','Play again','Jogar de novo'],
+dayN:['第 {D} 天','Day {D}','Dia {D}'],
+streak:['连击','Streak','Sequência'],combo:['连击 ×{N}：下一单提成 +{P}%','Streak ×{N}: +{P}% commission on your next sale','Sequência ×{N}: +{P}% de comissão na próxima venda'],comboLife:['十连击奖励：恢复一条命','Streak reward: one life restored','Prêmio da sequência: uma vida de volta'],
+jokeB:['讲个笑话（剩 {N} 次）','Tell a joke ({N} left)','Contar uma piada (restam {N})'],jokeS:['耐心 +25%','patience +25%','paciência +25%'],jokeOk:['客人笑了，耐心 +25%。','The caller laughs. Patience +25%.','O cliente ri. Paciência +25%.'],
+hintB:['问 Dona Zuleide（剩 {N} 次）','Ask Dona Zuleide ({N} left)','Perguntar à Dona Zuleide (restam {N})'],hintS:['圈出 3 条候选，耐心 −8%','circles 3 candidates, patience −8%','marca 3 opções, paciência −8%'],
+hintSay:['（老同事 Dona Zuleide 探过头来，在你的目录上圈了三条，其中一条最合适。）','(Dona Zuleide, the office veteran, leans over and circles three routes in your catalogue. One of them is the best fit.)','(Dona Zuleide, a veterana, se inclina e circula três roteiros na sua tabela. Um deles é o melhor.)'],
+hagTip:['客人在讨价还价：','The caller is haggling:','O cliente está pechinchando:'],
+hagA:['打 95 折','Give 5% off','Dar 5% de desconto'],hagAs:['营业额 −5%，口碑 +1 ★','sales −5%, rating +1 ★','vendas −5%, avaliação +1 ★'],
+hagB:['坚持原价，说几句好话','Hold the price, with charm','Manter o preço, na lábia'],hagBs:['耐心过半才成，否则口碑 −1 ★','works above half patience, otherwise rating −1 ★','funciona acima de meia paciência, senão avaliação −1 ★'],
+hagC:['原价，但送一杯迎宾 caipirinha','Full price, plus a welcome caipirinha','Preço cheio, com caipirinha de boas-vindas'],hagCs:['稳妥，每位客人从你的提成里扣 US$ 4','safe, costs US$ 4 of your commission per traveller','seguro, custa US$ 4 da sua comissão por pessoa'],
+partial:['不完全合适：客人只肯按九折成交。','Not quite the right fit: they only take it at 10% off.','Não era bem isso: só fecha com 10% de desconto.'],upBad:['推销了客人明说不要的东西，口碑 −1 ★','You pitched something they said they didn’t want. Rating −1 ★','Você ofereceu o que o cliente disse que não queria. Avaliação −1 ★'],
+hagMeA:['给您打个 95 折。','I can take 5% off for you.','Faço 5% de desconto.'],hagMeB:['这已经是最实在的价了，您去了就知道值。','This is already our best price. You’ll see it’s worth it.','Já é o melhor preço. Você vai ver que vale.'],hagMeC:['价格不能动，但迎宾的 caipirinha 算我的。','I can’t move on price, but the welcome caipirinha is on me.','No preço não mexo, mas a caipirinha de boas-vindas é por minha conta.'],
+dl:['下载 PNG','Download PNG','Baixar PNG'],dlOk:['明信片已保存','Postcard saved','Postal salvo'],dlNo:['这里无法保存文件','Saving isn’t available here','Não dá para salvar aqui'],
+album:['明信片册与成就','Postcard album and achievements','Álbum de postais e conquistas'],albumSub:['每卖出一个新目的地，就收到一张明信片，收到的可以下载。已收集 {N} / 33。','Every new destination you sell earns a postcard you can download. Collected: {N} / 33.','Cada destino novo vendido rende um postal que você pode baixar. Coleção: {N} / 33.'],
+newCard:['新明信片：{P}','New postcard: {P}','Novo postal: {P}'],achT:['成就','Achievements','Conquistas'],achNew:['成就解锁：{A}','Achievement unlocked: {A}','Conquista: {A}']
+};
+
+const GREET=[['dia','Bom dia'],['tarde','Boa tarde'],['noite','Boa noite']];
+const EXTRAS={seg:35,trans:25};
+const LN=['中文','English','Português'];
+const $=s=>document.querySelector(s);
+let S={lv:1,st:[],best:0,lang:0,snd:true,album:[],ach:[],regs:[],ex:0,hg:0};
+try{Object.assign(S,JSON.parse(localStorage.getItem('tucano92')||'{}'))}catch(e){}
+if(!S.v4){S.best=0;S.v4=1}
+const save=()=>{try{localStorage.setItem('tucano92',JSON.stringify(S))}catch(e){}};
+let LANG=S.lang||0,G=null,C=null,timer,actx,FT=null,SPQ=[],PSQ=[];
+const T=a=>Array.isArray(a)?a[LANG]:a;
+const tx=(a,o)=>fl(T(a),o||{},LANG);
+const fmt=n=>(n<0?'−':'')+'US$ '+Math.abs(Math.round(n)).toLocaleString(LANG===2?'pt-BR':'en-US');
+const rateOf=(m,y)=>Math.round(1100*Math.pow(1.24,m-1+12*(y-1992))/10)*10;
+const crTri=u=>{const v=u*G.rate/1e6,n=v>=100?Math.round(v)+'':v.toFixed(1);return['Cr$ '+n+' 百万','Cr$ '+n+' million','Cr$ '+n.replace('.',',')+' milhões']};
+const starStr=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+const rng=a=>{const f=T(monS(a[0])),l=T(monS(a[a.length-1]));return LANG?(a.length>1?f+'–'+l:f):(a.length>1?f+'–'+l+' 月':f+' 月')};
+const PX=l=>(l+74.6)*10,PY=l=>(5.6-l)*10;
+const clock=t=>String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+const rightGreet=t=>t<720?'dia':t<1080?'tarde':'noite';
+const dateTri=()=>t3(U.wxDate,{Y:G.year,M:mon(G.month)});
+
+/* ---------- language and static text ---------- */
+function langBtns(){
+  ['#langs1','#langs2'].forEach((s,k)=>{$(s).innerHTML=LN.map((n,i)=>'<button class="'+(k?'pill':'')+(i===LANG?' on':'')+'" data-l="'+i+'">'+n+'</button>').join('')});
+}
+function applyLang(){
+  document.documentElement.lang=['zh-CN','en','pt-BR'][LANG];
+  document.querySelectorAll('[data-u]').forEach(e=>e.innerHTML=T(U[e.dataset.u]));
+  langBtns();
+  $('#snd').textContent=T(S.snd?U.sndOn:U.sndOff);
+  $('#bestLine').textContent=S.best?T(U.best)+': '+fmt(S.best):'';
+  $('#legend').innerHTML=Object.keys(REG).map(r=>'<span><i style="background:var(--r'+r+')"></i>'+T(REG[r])+'</span>').join('')+'<span>'+T(U.legAl)+'</span>';
+  $('#albN').textContent=S.album.length+' / '+PK.length+' · ★ '+S.ach.length+' / '+Object.keys(ACH).length;
+  if(!$('#levels').classList.contains('hidden'))renderLevels();
+  if(!$('#album').classList.contains('hidden'))renderAlbum();
+  if(G&&!$('#game').classList.contains('hidden')){header();wx();drawMap();if(C){notes();callerHead();renderActs()}catalog()}
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-l]');if(b){LANG=+b.dataset.l;S.lang=LANG;save();applyLang()}});
+function show(id){['menu','levels','album','game','sum'].forEach(x=>$('#'+x).classList.toggle('hidden',x!==id));window.scrollTo(0,0)}
+
+/* ---------- building shifts ---------- */
+function build(n,ns,o){
+  const calls=[];let sum=0;
+  while(calls.length<n){if(!PSQ.length)PSQ=shuffle(PS.slice());const c=genCustomer(PSQ.shift(),o);if(c){calls.push({kind:'sale',c});sum+=unit(PKI[c.target],c.pax)*c.pax}}
+  for(let i=0;i<ns;i++){if(!SPQ.length)SPQ=shuffle(SPECIALS.slice());calls.splice(1+rnd(calls.length),0,{kind:'sp',c:SPQ.shift()})}
+  const m=calls.length,t0=9*60+10,t1=19*60+25;
+  calls.forEach((k,i)=>{k.time=Math.round(t0+(m>1?i*(t1-t0)/(m-1):0)+(i&&i<m-1?rnd(31)-15:0))});
+  return{calls,sum};
+}
+function startCampaign(l){
+  SPQ=[];PSQ=[];
+  const al=l>=3?pick(Object.keys(REG)):null;
+  const b=build([4,4,5,5,5,6,6,6,7,7,7,8][l-1],[0,1,1,1,1,2,2,2,2,2,3,3][l-1],{month:l,al,cons:l>=2,now:l>=3});
+  const f=.605+.0145*l,ideal=b.sum+.5*b.calls.filter(k=>k.kind==='sp').reduce((a,k)=>a+Math.max(0,...k.c.opts.map(o=>o.rev||0)),0);
+  G={mode:'camp',lvl:l,month:l,year:1992,al,rate:rateOf(l,1992),calls:b.calls,idx:-1,rev:0,com:0,stars:[],hist:[],
+     target:Math.round(ideal*f/10)*10,t2:Math.round(ideal*(f+.08)/10)*10,t3:Math.round(ideal*(f+.15)/10)*10,pr:.46+l*.04,count:0,combo:0,jokes:l>=7?2:1,hints:l>=7?2:1};
+  begin();say('sys',T(LV[l-1]));
+}
+function startEndless(){
+  SPQ=[];PSQ=[];
+  G={mode:'end',day:0,month:12,year:1991,lives:3,calls:[],idx:-1,rev:0,com:0,stars:[],hist:[],count:0,combo:0};
+  newDay();begin();
+}
+function newDay(){
+  G.day++;G.month++;if(G.month>12){G.month=1;G.year++}
+  G.jokes=1;G.hints=1;G.al=pick(Object.keys(REG));G.rate=rateOf(G.month,G.year);G.pr=Math.min(2.2,.6+G.day*.13);
+  G.calls=G.calls.concat(build(5,1,{month:G.month,al:G.al,cons:G.day>1,now:true}).calls);
+}
+function begin(){FT=null;C=null;show('game');$('#log').innerHTML='';drawMap();wx();nextCall()}
+
+/* ---------- header, notes, weather ---------- */
+function header(){
+  const e=G.mode==='end';
+  $('#hModeL').textContent=T(e?U.endl:U.camp);
+  $('#hMode').textContent=e?tx(U.dayN,{D:G.day}):T(mon(G.month))+' 1992';
+  $('#hRevL').textContent=T(e?U.revE:U.rev);$('#hRev').textContent=fmt(G.rev);$('#hTar').textContent=e?'':' / '+fmt(G.target);
+  $('#hBarBox').style.visibility=e?'hidden':'visible';
+  if(!e)$('#hBar').style.width=Math.min(100,G.rev/G.target*100)+'%';
+  $('#hCom').textContent=fmt(G.com);
+  $('#hStar').textContent=G.stars.length?(G.stars.reduce((a,b)=>a+b,0)/G.stars.length).toFixed(1)+' ★':'—';
+  $('#hLivesBox').classList.toggle('hidden',!e);$('#hComboBox').classList.toggle('hidden',G.combo<2);$('#hCombo').textContent='×'+G.combo;
+  if(e)$('#hLives').textContent='♥'.repeat(Math.max(0,G.lives))+'♡'.repeat(3-Math.max(0,G.lives));
+}
+function wx(){
+  $('#wx').innerHTML='<b>'+T(U.wxT)+'</b> · '+T(dateTri())+' · US$ 1 = Cr$ '+G.rate.toLocaleString(LANG===2?'pt-BR':'en-US')+'<br>'+
+    (G.al?tx(U.wxAl,{R:REG[G.al],A:ALERT[G.al]}):T(U.wxNo));
+}
+function say(who,html,cls){
+  const d=document.createElement('div');d.className='msg '+who+(cls?' '+cls:'');d.innerHTML=html;
+  const l=$('#log');l.appendChild(d);l.scrollTop=l.scrollHeight;
+}
+function acts(list,tip){
+  const a=$('#acts');a.innerHTML='';
+  if(tip){const p=document.createElement('p');p.className='tip';p.textContent=tip;a.appendChild(p)}
+  list.forEach(o=>{const b=document.createElement('button');b.className='btn'+(o.pri?' pri':'')+(o.wide?' wide':'')+(o.help?' help':'');
+    b.innerHTML=o.t+(o.sub?'<small>'+o.sub+'</small>':'');b.onclick=o.f;a.appendChild(b)});
+}
+function setPat(v){
+  C.pat=Math.max(0,Math.min(100,v));const col=C.pat>55?'var(--good)':C.pat>25?'#e0a400':'var(--bad)';
+  $('#patN').textContent=Math.round(C.pat)+'%';
+  ['#patI','#patI2'].forEach(s=>{$(s).style.width=C.pat+'%';$(s).style.background=col});
+}
+const MOB=matchMedia('(max-width:760px)');let lastTip=null;
+function patVis(v){$('#patBox').style.visibility=v;$('#patTop').style.visibility=v}
+function setTab(t){$('#game').dataset.tab=t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));$('#tt').classList.add('hidden');lastTip=null}
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTab(b.dataset.tab)});
+function callerHead(){
+  const c=C.call.c;
+  if(C.phase==='ring'){$('#cName').textContent=T(U.incoming);$('#cSub').textContent=G.mode==='end'?tx(U.callE,{I:G.count+1}):tx(U.callN,{I:G.idx+1,N:G.calls.length});return}
+  $('#cName').textContent=T(c.n);$('#cSub').textContent=(c.role?T(c.role)+' · ':'')+T(c.from)+' · '+clock(C.call.time);
+}
+function notes(){
+  const c=C.call.c,k=C.known,n=$('#notes');
+  if(C.phase==='ring'){n.innerHTML='<dt>'+T(U.note)+'</dt><dd class="q">'+T(U.idle)+'</dd>';return}
+  if(C.call.kind!=='sale'){n.innerHTML='<dt>'+T(U.note)+'</dt><dd>'+T(U.notSale)+'</dd>';return}
+  const v={
+    budget:k.budget?T(crTri(c.budget))+' ≈ <b>'+fmt(c.budget)+'</b> '+T(U.total)+(k.who&&c.pax>1?' · '+fmt(c.budget/c.pax)+T(U.perP):''):0,
+    days:k.days?tx(U.upTo,{D:c.days}):0,
+    who:k.who?tx(U.ppl,{P:c.pax}):0,
+    like:k.like?c.wants.map(w=>'<span class="chip">'+T(TAGS[w])+'</span>').join('')+(c.avoid?'<span class="chip no">'+T(U.no)+T(TAGS[c.avoid])+'</span>':''):0,
+    month:k.month?T(mon(c.month))+(c.now?' <span class="chip no">'+T(U.soon)+'</span>':''):0,
+    restr:k.restr?(c.cons.length?c.cons.map(x=>'<span class="chip no">'+T(CONS[x])+'</span>').join(''):T(U.none)):0};
+  n.innerHTML=Object.keys(QS).map(x=>'<dt>'+T(QS[x].lab)+'</dt><dd>'+(v[x]||'<span class="q">'+T(U.notyet)+'</span>')+'</dd>').join('');
+}
+function climate(p){
+  const a=[];if(p.bad.length)a.push(T(U.offL)+': '+T(p.badTxt));if(p.rain.length)a.push(T(U.rainL)+' '+rng(p.rain));
+  if(p.cold.length)a.push(T(U.coldL)+' '+rng(p.cold));if(p.hot.length)a.push(T(U.hotL)+' '+rng(p.hot));
+  if(p.hard)a.push(T(U.hardL));if(p.boat)a.push(T(U.boatL));return a;
+}
+function monthState(p,c){
+  const m=c.month,o={M:mon(m),R:REG[p.reg],A:ALERT[p.reg]};
+  if(p.bad.includes(m))return['x',tx(U.sOff,o)];
+  if(c.now&&G.al&&p.reg===G.al)return['x',tx(U.sAl,o)];
+  if(p.rain.includes(m))return['x',tx(U.sRain,o)];
+  if(p.cold.includes(m))return['x',tx(U.sCold,o)];
+  if(p.hot.includes(m))return['x',tx(U.sHot,o)];
+  return['g',tx(U.sOk,o)];
+}
+const pname=p=>p.name+(T(p.desc)?'<span>'+T(p.desc)+' · '+T(REG[p.reg])+'</span>':'<span>'+T(REG[p.reg])+'</span>');
+function catalog(){
+  const on=C&&C.call.kind==='sale'&&C.phase==='talk',c=C&&C.call.c,pax=on&&C.known.who?c.pax:0,mk=on&&C.known.month;
+  $('#filt').innerHTML='<button data-t=""'+(FT?'':' class="on"')+'>'+T(U.all)+'</button>'+Object.keys(TAGS).map(t=>'<button data-t="'+t+'"'+(FT===t?' class="on"':'')+'>'+T(TAGS[t])+'</button>').join('');
+  const list=PK.filter(p=>!FT||p.tags.includes(FT));if(C&&C.hint)list.sort((a,b)=>C.hint.has(b.id)-C.hint.has(a.id));
+  $('#cat').innerHTML=list.map(p=>{
+    const ms=mk?monthState(p,c):null,cl=climate(p);
+    return '<div class="pk'+(C&&C.tried.has(p.id)?' tried':'')+(C&&C.hint&&C.hint.has(p.id)?' hinted':'')+'" data-pk="'+p.id+'" style="border-left-color:var(--r'+p.reg+')"><div class="th">'+scene(p.id)+'</div><h3>'+pname(p)+'</h3>'+
+    '<button data-id="'+p.id+'"'+(on&&!C.tried.has(p.id)?'':' disabled')+'>'+T(U.quote)+'</button>'+
+    '<div class="meta"><b>'+p.days+' '+T(U.d)+'</b> · '+(pax?'<b>'+fmt(unit(p,pax))+'</b> × '+pax+' = <b>'+fmt(unit(p,pax)*pax)+'</b>'+(pax===1?' ('+T(U.single)+')':pax>=4?' ('+T(U.group)+')':''):'<b>'+fmt(p.price)+'</b>')+' · '+p.tags.map(t=>T(TAGS[t])).join(' / ')+'</div>'+
+    '<div class="cl">'+(ms?'<span class="'+ms[0]+'">'+ms[1]+'</span> · ':'')+(cl.length?cl.join(' · '):T(U.allYear))+'</div></div>'}).join('');
+}
+$('#filt').addEventListener('click',e=>{const b=e.target.closest('button');if(b){FT=b.dataset.t||null;catalog()}});
+$('#cat').addEventListener('click',e=>{const b=e.target.closest('button[data-id]');if(b&&!b.disabled)offer(PKI[b.dataset.id])});
+$('#cat').addEventListener('mouseover',e=>{const r=e.target.closest('.pk');document.querySelectorAll('.dot.hl').forEach(d=>d.classList.remove('hl'));
+  if(r){const d=$('.dot[data-id="'+r.dataset.pk+'"]');if(d)d.classList.add('hl')}});
+$('#cat').addEventListener('mouseleave',()=>document.querySelectorAll('.dot.hl').forEach(d=>d.classList.remove('hl')));
+
+/* ---------- map ---------- */
+function drawMap(){
+  const al=G?G.al:null;
+  $('#map').innerHTML='<path class="land" d="M'+BR.map(p=>PX(p[0]).toFixed(1)+' '+PY(p[1]).toFixed(1)).join('L')+'Z"/>'+
+   RLAB.map(r=>'<text class="rl" x="'+PX(r[1])+'" y="'+PY(r[2])+'">'+r[0]+'</text>').join('')+
+   PK.map(p=>'<g class="dot'+(p.reg===al?' al':'')+'" data-id="'+p.id+'" tabindex="0" role="button" aria-label="'+p.name+'" transform="translate('+PX(p.lon).toFixed(1)+' '+PY(p.lat).toFixed(1)+')">'+
+    '<circle class="hit" r="9"/>'+(p.reg===al?'<circle class="ring" r="8.5"/>':'')+'<circle class="pt r'+p.reg+'" r="4.8"/></g>').join('');
+}
+function tip(g){
+  const p=PKI[g.dataset.id],t=$('#tt'),box=$('#mapbox').getBoundingClientRect(),r=g.getBoundingClientRect(),cl=climate(p);
+  t.innerHTML=scene(p.id)+'<b>'+p.name+'</b>'+(T(p.desc)?T(p.desc)+' · ':'')+T(REG[p.reg])+'<br>'+p.days+' '+T(U.d)+' · '+fmt(p.price)+T(U.perP)+'<br>'+p.tags.map(x=>T(TAGS[x])).join(' / ')+
+    '<br><span>'+(cl.length?cl.join('; '):T(U.allYear))+'</span><br><span>'+T(U.actsL)+': '+p.acts.map(a=>T(a.n)).join(', ')+'</span>'+
+    (G&&p.reg===G.al?'<br>⚠ '+T(ALERT[p.reg]):'');
+  t.classList.remove('hidden');
+  let x=r.left-box.left+r.width/2+12,y=r.top-box.top-60;
+  if(x+230>box.width)x=r.left-box.left-242;if(x<0)x=4;
+  if(y+t.offsetHeight>box.height)y=box.height-t.offsetHeight;if(y<0)y=0;
+  t.style.left=x+'px';t.style.top=y+'px';
+}
+const mp=$('#map');
+['mouseover','focusin'].forEach(ev=>mp.addEventListener(ev,e=>{const g=e.target.closest('.dot');if(g)tip(g)}));
+['mouseout','focusout'].forEach(ev=>mp.addEventListener(ev,e=>{if(e.target.closest('.dot'))$('#tt').classList.add('hidden')}));
+function locate(g){
+  tip(g);if(MOB.matches){if(lastTip!==g.dataset.id){lastTip=g.dataset.id;return}setTab('cat')}
+  if(FT){FT=null;catalog()}
+  const row=$('.pk[data-pk="'+g.dataset.id+'"]');if(!row)return;
+  const cat=$('#cat');cat.scrollTop=row.offsetTop-cat.offsetTop-8;row.classList.add('flash');setTimeout(()=>row.classList.remove('flash'),1200);
+}
+mp.addEventListener('click',e=>{const g=e.target.closest('.dot');if(g)locate(g);else{$('#tt').classList.add('hidden');lastTip=null}});
+mp.addEventListener('keydown',e=>{const g=e.target.closest('.dot');if(g&&(e.key==='Enter'||e.key===' ')){e.preventDefault();locate(g)}});
+
+/* ---------- sound ---------- */
+function beep(){
+  if(!S.snd)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    [0,.09,.18,.27].forEach((d,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=i%2?480:440;o.type='square';
+      g.gain.setValueAtTime(.0001,actx.currentTime+d);g.gain.exponentialRampToValueAtTime(.05,actx.currentTime+d+.01);
+      g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+d+.08);o.connect(g).connect(actx.destination);
+      o.start(actx.currentTime+d);o.stop(actx.currentTime+d+.09)})}catch(e){}
+}
+function stopTimer(){clearInterval(timer);timer=null}
+
+/* ---------- call flow ---------- */
+function nextCall(){
+  if(G.mode==='end'&&G.lives<=0)return gameOver();
+  G.idx++;
+  if(G.idx>=G.calls.length){
+    if(G.mode==='camp')return levelEnd();
+    newDay();drawMap();wx();$('#log').innerHTML='';
+  }
+  const call=G.calls[G.idx];
+  const fresh=G.mode==='end'&&G.idx&&G.idx%6===0;
+  C={call,phase:'ring',pat:100,known:{},tried:new Set(),hag:Math.random()<.3,hint:null};
+  if(!fresh&&G.idx)$('#log').innerHTML='';
+  $('#hClock').textContent=clock(call.time);
+  $('#ph').classList.add('ring');patVis('hidden');setTab('call');
+  callerHead();notes();catalog();header();
+  if(fresh)say('sys',tx(U.newDay,{D:dateTri()}),'ok');
+  say('sys',tx(U.ringing,{T:clock(call.time)}));
+  beep();stopTimer();timer=setInterval(beep,1700);
+  renderActs();
+}
+function renderActs(){
+  if(!C)return;const c=C.call.c,ph=C.phase;
+  if(ph==='ring')acts([{t:T(U.answerB),pri:1,f:answer}]);
+  else if(ph==='greet')acts(GREET.map(([k,g])=>({t:'“Tucano Viagens, '+g.toLowerCase()+'!”',f:()=>greet(k,g)})),T(U.greetTip));
+  else if(ph==='talk'){const qs=Object.keys(QS).filter(k=>!C.known[k]);
+    const ex=[];if(G.jokes>0)ex.push({t:tx(U.jokeB,{N:G.jokes}),sub:T(U.jokeS),help:1,f:joke});if(G.hints>0)ex.push({t:tx(U.hintB,{N:G.hints}),sub:T(U.hintS),help:1,f:hint});
+    acts(qs.map(k=>({t:T(QS[k].lab)+'?',sub:QS[k].q,f:()=>ask(k)})).concat(ex),T(qs.length?U.askTip:U.askDone))}
+  else if(ph==='haggle')acts([{t:T(U.hagA),sub:T(U.hagAs),f:()=>haggle('a')},{t:T(U.hagB),sub:T(U.hagBs),f:()=>haggle('b')},{t:T(U.hagC),sub:T(U.hagCs),f:()=>haggle('c')}],T(U.hagTip))
+  else if(ph==='choice')acts(c.opts.map(o=>({t:T(o.t),wide:1,f:()=>choose(o)})),T(U.respond));
+  else if(ph==='upsell'){const p=C.sale.p;
+    acts(p.acts.map((a,i)=>({t:T(a.n),sub:T(U.local)+' · '+T(TAGS[a.tag])+' · '+fmt(a.p)+T(U.perP),f:()=>upsell('a'+i)})).concat([
+      {t:T(U.seg),sub:fmt(EXTRAS.seg)+T(U.perP),f:()=>upsell('seg')},{t:T(U.trans),sub:fmt(EXTRAS.trans)+T(U.perP),f:()=>upsell('trans')},
+      {t:T(U.noUp),sub:'Boa viagem!',f:()=>upsell(null)}]),T(U.upTip))}
+  else if(ph==='done'){const last=G.mode==='camp'?G.idx===G.calls.length-1:G.lives<=0;
+    acts([{t:T(last?U.endB:U.nextB),pri:1,f:nextCall}])}
+}
+function answer(){
+  stopTimer();$('#ph').classList.remove('ring');C.phase='greet';G.count++;
+  callerHead();renderActs();
+}
+function greet(k,g){
+  const call=C.call,c=call.c;
+  say('me','Tucano Viagens, '+g.toLowerCase()+'! Em que posso ajudar?');
+  const ok=k===rightGreet(call.time);
+  if(!ok){const r=GREET.find(x=>x[0]===rightGreet(call.time))[1];say('sys',tx(U.greetWrong,{T:clock(call.time),G:r})+' '+T(pick(L.greetBad)),'warn')}
+  say('c',T(c.open));
+  if(call.kind==='sale'){
+    if(c.mood)say('c',T(c.mood));
+    C.phase='talk';patVis('visible');setPat(ok?100:86);
+    const rate=G.pr*c.fast;
+    timer=setInterval(()=>{if(C.phase!=='talk')return;setPat(C.pat-rate*.5);if(C.pat<=0)hangup()},500);
+  }else{C.phase='choice';C.greetOk=ok}
+  notes();catalog();renderActs();
+}
+function ask(k){
+  const c=C.call.c,o={B:crTri(c.budget),ALL:c.pax>1?['，所有人加起来',' for all of us',' para todos']:'',D:c.days,M:mon(c.month)};
+  say('me',QS[k].q+(LANG<2?'<small>'+QS[k].tr[LANG]+'</small>':''));
+  const a={budget:()=>tx(pick(L.budget),o),days:()=>tx(pick(L.days),o),who:()=>T(c.who),like:()=>T(c.like),
+    month:()=>tx(pick(c.now?L.now:L.month),o),restr:()=>c.cons.length?c.cons.map(x=>T(pick(L.cons[x]))).join(' '):T(pick(L.none))}[k]();
+  say('c',a);if(Math.random()<.18)say('c',T(pick(L.filler)));
+  C.known[k]=1;setPat(C.pat-6);notes();catalog();
+  if(C.pat<=0)return hangup();renderActs();
+}
+function offer(p){
+  if(C.phase!=='talk')return;
+  const c=C.call.c,r=score(c,p,G.al);C.tried.add(p.id);setTab('call');
+  say('me',tx(U.offerMe,{P:p.name,D:p.days,C:fmt(r.cost)}));
+  if(r.s>=70){
+    stopTimer();C.phase=C.hag?'haggle':'upsell';C.sale={p,r,rev:r.cost};sfx('sale');
+    let st=r.s>=95?5:r.s>=85?4:3;if(C.pat<30)st--;C.sale.stars=Math.max(2,st);
+    const part=r.s<85;if(part)C.sale.rev=Math.round(r.cost*.9);
+    say('c',T(pick(r.s>=95?L.yes:r.flags.includes('rain')?L.okRain:L.ok)));
+    say('sys','<div class="post">'+scene(p.id)+p.name+'<span class="stamp">VENDIDO</span><br><button class="dl" data-dl="'+p.id+'">'+T(U.dl)+'</button></div>');
+    if(part)say('sys',T(U.partial),'warn');
+    say('sys',tx(U.sold,{C:fmt(C.sale.rev)}),'ok');if(C.hag)say('c',T(pick(L.haggle)));catalog();renderActs();
+  }else{
+    const f=r.flags[0];
+    say('c',tx(pick(L.fail[f]),{T:c.avoid?TAGS[c.avoid]:'',BT:p.badTxt||'',R:REG[p.reg],AL:ALERT[p.reg],M:mon(c.month),COST:fmt(r.cost),PD:p.days,D:c.days}));
+    setPat(C.pat-22);catalog();
+    if(C.pat<=0)return hangup();
+    say('sys',T(U.rejected),'warn');
+  }
+}
+function upsell(k){
+  const c=C.call.c,s=C.sale;
+  if(!k){say('me',T(U.byeMe));say('c',T(pick(L.bye)))}
+  else{
+    const act=k[0]==='a'?s.p.acts[+k[1]]:null,price=act?act.p:EXTRAS[k],name=act?T(act.n):T(U[k]),add=price*c.pax;
+    say('me',tx(U.upMe,{E:name,C:fmt(price)}));
+    const fits=act?(c.wants.includes(act.tag)&&act.tag!==c.avoid&&!(act.tag==='avent'&&c.cons.includes('noHard'))):c.extra===k;
+    if(s.rev+add>c.budget*1.05){s.stars=Math.max(2,s.stars-1);say('c',T(pick(L.over)));say('sys',T(U.upOver),'warn')}
+    else if(fits){s.rev+=add;s.extra=1;s.ext=add;say('c',T(pick(L.acc)));say('sys',tx(U.upAdd,{C:fmt(add)}),'ok')}
+    else if(act&&(act.tag===c.avoid||(act.tag==='avent'&&c.cons.includes('noHard')))){s.stars=Math.max(2,s.stars-1);say('c',T(pick(L.dec)));say('sys',T(U.upBad),'warn')}
+    else say('c',T(pick(L.dec)));
+  }
+  // endless counts the catalogue list price per person: undo the single supplement or group rate, keep discounts and extras
+  const f=unit(s.p,c.pax)/s.p.price,ext=s.ext||0,cnt=(s.rev-ext)/(c.pax*f)+ext/c.pax;
+  finish(s.stars,s.rev,s.money||0,s.p.name,s.rev/cnt);
+}
+function hangup(){
+  stopTimer();say('c',T(pick(L.hang)));say('sys',T(U.hung),'warn');
+  finish(1,0,0,U.hungH);
+}
+function choose(o){
+  say('me',T(o.t));say('c',T(o.r));
+  if(o.target&&G.mode==='camp'){G.target+=o.target;G.t2+=o.target;G.t3+=o.target}
+  if(o.note)say('sys',T(o.note),o.money>0||o.rev?'ok':'warn');
+  let st=o.stars||null;if(st&&!C.greetOk&&st>1)st--;
+  finish(st,o.rev||0,o.money||0,o.note||(st>=4?U.good:st?U.badH:'—'),o.n||1);
+}
+function finish(stars,total,money,what,pax){
+  stopTimer();C.phase='done';
+  const rev=G.mode==='end'?Math.round(total/(pax||1)):total; // endless counts a per-person figure, so party size is not luck
+  const mult=1+Math.min(G.combo,5)*.1,com=rev*.08*mult+money;G.rev+=rev;G.com+=com;if(stars)G.stars.push(stars);
+  G.hist.push({n:C.call.c.n,what,rev,stars});
+  say('sys',(stars?'<span class="stars">'+starStr(stars)+'</span> · ':'')+tx(G.mode==='end'?U.resE:U.res,{R:fmt(rev),C:fmt(com)}));
+  if(stars>=4){G.combo++;if(G.combo>=2)say('sys',tx(U.combo,{N:G.combo,P:Math.min(G.combo,5)*10}),'ok');if(G.combo>=5)unlock('combo');
+    if(G.mode==='end'&&G.combo%10===0&&G.lives<3){G.lives++;say('sys',T(U.comboLife),'ok')}}
+  else if(stars&&stars<=2)G.combo=0;
+  if(stars===1){sfx('bad');anim('.p-call','shake')}
+  if(G.mode==='end'&&stars===1){G.lives--;say('sys',tx(U.life,{L:Math.max(0,G.lives)}),'warn')}
+  if(C.sale&&rev){const p=C.sale.p,c=C.call.c;unlock('first');
+    if(!S.album.includes(p.id)){S.album.push(p.id);toast(tx(U.newCard,{P:p.name}))}
+    if(!S.regs.includes(p.reg))S.regs.push(p.reg);if(C.sale.extra)S.ex++;
+    if(p.id==='nor')unlock('nor');if(S.regs.length>=5)unlock('regs');if(c.pax>=6)unlock('group');if(C.pat>=80)unlock('speed');if(S.ex>=10)unlock('ex');if(S.album.length>=PK.length)unlock('album');save()}
+  if(G.mode==='end'&&G.com>=2500)unlock('end10k');
+  header();if(rev>0)anim('#hRev','pop');catalog();renderActs();
+}
+
+/* ---------- fun: sounds, toasts, streaks, helpers, haggling, album ---------- */
+function note(f,d,len,type,v){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime+d;o.frequency.value=f;o.type=type||'triangle';
+  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v||.1,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+len);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+len+.02)}catch(e){}}
+function sfx(k){if(!S.snd)return;({sale:()=>{note(988,0,.12);note(1319,.1,.3)},bad:()=>{note(196,0,.25,'sawtooth',.06);note(147,.2,.35,'sawtooth',.06)},
+  ach:()=>[659,784,988,1319].forEach((f,i)=>note(f,i*.09,.2)),joke:()=>{note(523,0,.1);note(659,.1,.1);note(784,.2,.15)}})[k]()}
+function toast(html){const d=document.createElement('div');d.className='toast';d.innerHTML=html;$('#toasts').appendChild(d);setTimeout(()=>d.remove(),3400)}
+function unlock(id){if(S.ach.includes(id))return;S.ach.push(id);save();toast('★ '+tx(U.achNew,{A:ACH[id][0]}));sfx('ach')}
+function anim(sel,cls){const e=$(sel);e.classList.remove(cls);void e.offsetWidth;e.classList.add(cls)}
+function joke(){G.jokes--;say('me',T(pick(L.jokes)));say('sys',T(U.jokeOk),'ok');setPat(C.pat+25);sfx('joke');renderActs()}
+function hint(){
+  G.hints--;const c=C.call.c;
+  C.hint=new Set(PK.filter(p=>!C.tried.has(p.id)).map(p=>[p.id,score(c,p,G.al).s]).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]));
+  say('sys',T(U.hintSay));setPat(C.pat-8);catalog();if(C.pat<=0)return hangup();if(MOB.matches)setTab('cat');renderActs();
+}
+function haggle(k){
+  const s=C.sale;
+  if(k==='a'){say('me',T(U.hagMeA));s.rev=Math.round(s.rev*.95);s.stars=Math.min(5,s.stars+1);say('c',T(pick(L.hagYes)))}
+  else if(k==='b'){say('me',T(U.hagMeB));if(C.pat>=50){say('c',T(pick(L.hagWin)));S.hg=(S.hg||0)+1;if(S.hg>=5)unlock('hag')}else{s.stars=Math.max(2,s.stars-1);say('c',T(pick(L.hagLose)))}}
+  else{say('me',T(U.hagMeC));s.money=G.mode==='end'?-4:-4*C.call.c.pax;say('c',T(pick(L.hagYes)))}
+  C.phase='upsell';renderActs();
+}
+function renderAlbum(){
+  $('#album').innerHTML='<div class="eyebrow">Tucano Viagens · 1992</div><h1>'+T(U.album)+'</h1><p>'+tx(U.albumSub,{N:S.album.length})+'</p><div class="alb">'+
+   PK.map(p=>{const ok=S.album.includes(p.id);return '<figure class="'+(ok?'':'no')+'">'+scene(p.id)+'<figcaption>'+(ok?p.name+'<br><button class="dl" data-dl="'+p.id+'">'+T(U.dl)+'</button>':'? ? ?')+'</figcaption></figure>'}).join('')+'</div>'+
+   '<h2>'+T(U.achT)+' '+S.ach.length+' / '+Object.keys(ACH).length+'</h2><ul class="achs">'+Object.keys(ACH).map(k=>'<li class="'+(S.ach.includes(k)?'':'no')+'">'+(S.ach.includes(k)?'★ ':'☆ ')+'<b>'+T(ACH[k][0])+'</b> · '+T(ACH[k][1])+'</li>').join('')+'</ul>'+
+   '<div class="acts"><button class="btn" id="aBack">'+T(U.back)+'</button></div>';
+  $('#aBack').onclick=toMenu;
+}
+
+
+/* ---------- postcard download ---------- */
+let DL=null;try{if(window.claude&&claude.use)claude.use('downloads').then(d=>{DL=d}).catch(()=>{})}catch(e){}
+function postcardSVG(id){
+  const p=PKI[id];
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1300" viewBox="0 0 180 130"><rect width="180" height="130" fill="#fff"/>'+
+    scene(id).replace('<svg class="sc"','<svg x="6" y="6" width="168" height="105"')+
+    '<text x="6" y="122" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="7.5" fill="#13251e">'+p.name.replace(/&/g,'&amp;')+'</text>'+
+    '<text x="174" y="122" text-anchor="end" font-family="Arial,Helvetica,sans-serif" font-size="5" fill="#5d6f66">Tucano Viagens · Brasil 1992</text></svg>';
+}
+function toPNG(svg){return new Promise((res,rej)=>{
+  const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'})),im=new Image();
+  im.onload=()=>{try{const c=document.createElement('canvas');c.width=1800;c.height=1300;c.getContext('2d').drawImage(im,0,0,1800,1300);URL.revokeObjectURL(url);c.toBlob(b=>b?res(b):rej(new Error('png')),'image/png')}catch(e){rej(e)}};
+  im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('img'))};im.src=url})}
+async function savePost(id){
+  const svg=postcardSVG(id);let data,ext='png';
+  try{data=await toPNG(svg)}catch(e){data=svg;ext='svg'}
+  const filename='tucano-1992-'+id+'.'+ext;
+  if(DL){try{await DL.save({filename,data});toast(T(U.dlOk))}catch(e){if(!e||e.code!=='declined')toast(T(U.dlNo))}return}
+  try{const b=data instanceof Blob?data:new Blob([data],{type:'image/svg+xml'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}catch(e){toast(T(U.dlNo))}
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-dl]');if(b)savePost(b.dataset.dl)});
+
+/* ---------- results ---------- */
+function histTable(){
+  return '<table><tr><th>'+T(U.thCall)+'</th><th>'+T(U.thRes)+'</th><th class="n">'+T(U.rev)+'</th><th>'+T(U.thRate)+'</th></tr>'+
+   G.hist.slice(-12).map(x=>'<tr><td>'+T(x.n)+'</td><td>'+T(x.what)+'</td><td class="n">'+fmt(x.rev)+'</td><td class="stars">'+(x.stars?starStr(x.stars):'—')+'</td></tr>').join('')+'</table>';
+}
+function levelEnd(){
+  const l=G.lvl,ok=G.rev>=G.target,st=!ok?0:G.rev>=G.t3?3:G.rev>=G.t2?2:1;
+  if(ok&&l===12)unlock('year');
+  if(ok){S.st[l-1]=Math.max(S.st[l-1]||0,st);S.lv=Math.max(S.lv,Math.min(12,l+1));save()}
+  let h='<div class="eyebrow">'+tx(U.resT,{M:mon(l)})+' · 1992</div><h1>'+T(ok?U.pass:U.failT)+'</h1>'+(ok?'<div class="big stars">'+'★'.repeat(st)+'☆'.repeat(3-st)+'</div>':'')+
+   '<div class="row"><div>'+T(U.rev)+'<div class="big">'+fmt(G.rev)+'</div><small>'+T(U.target)+' '+fmt(G.target)+' · ★★ '+fmt(G.t2)+' · ★★★ '+fmt(G.t3)+'</small></div><div>'+T(U.com)+'<div class="big">'+fmt(G.com)+'</div></div></div>'+histTable();
+  if(ok&&l===12)h+='<p style="margin-top:14px"><b>'+T(U.champ)+'</b></p>';
+  h+='<div class="acts">'+(ok&&l<12?'<button class="btn pri" id="rNext">'+tx(U.nextL,{M:mon(l+1)})+'</button>':'')+
+    '<button class="btn'+(ok?'':' pri')+'" id="rRetry">'+T(U.retry)+'</button><button class="btn" id="rLv">'+T(U.toLv)+'</button></div>';
+  $('#sum').innerHTML=h;show('sum');
+  if($('#rNext'))$('#rNext').onclick=()=>startCampaign(l+1);
+  $('#rRetry').onclick=()=>startCampaign(l);$('#rLv').onclick=()=>{renderLevels();show('levels')};
+}
+function gameOver(){
+  const nb=G.com>S.best;if(nb){S.best=G.com;save()}
+  $('#sum').innerHTML='<div class="eyebrow">'+T(U.endl)+'</div><h1>'+T(U.over)+'</h1><p>'+T(U.overP)+'</p>'+
+   '<div class="row"><div>'+T(U.score)+'<div class="big">'+fmt(G.com)+'</div><small>'+(nb?T(U.newBest):T(U.best)+': '+fmt(S.best))+'</small></div><div>'+T(U.revE)+'<div class="big">'+fmt(G.rev)+'</div></div></div>'+
+   '<p>'+tx(U.lasted,{D:G.day,N:G.count})+'</p>'+histTable()+
+   '<div class="acts"><button class="btn pri" id="rAgain">'+T(U.again)+'</button><button class="btn" id="rMenu">'+T(U.toMenu)+'</button></div>';
+  show('sum');$('#rAgain').onclick=startEndless;$('#rMenu').onclick=toMenu;
+}
+function renderLevels(){
+  $('#lvs').innerHTML=LV.map((_,i)=>{const st=S.st[i]||0,open=i<S.lv;
+    return '<button class="lv" data-lv="'+(i+1)+'"'+(open?'':' disabled')+'><b>'+T(mon(i+1))+'</b><span class="stars">'+(open?'★'.repeat(st)+'☆'.repeat(3-st):'🔒')+'</span></button>'}).join('');
+}
+$('#lvs').addEventListener('click',e=>{const b=e.target.closest('.lv');if(b&&!b.disabled)startCampaign(+b.dataset.lv)});
+function toMenu(){stopTimer();G=null;C=null;show('menu');applyLang()}
+$('#bCamp').onclick=()=>{renderLevels();show('levels')};
+$('#bEnd').onclick=startEndless;$('#bAlb').onclick=()=>{renderAlbum();show('album')};
+$('#bBack').onclick=toMenu;$('#bMenu').onclick=toMenu;
+$('#snd').onclick=()=>{S.snd=!S.snd;save();$('#snd').textContent=T(S.snd?U.sndOn:U.sndOff)};
+$('#how').open=!MOB.matches;
+$('#strip').innerHTML=['rio','len','foz','ouro'].map(scene).join('');
+applyLang();
+</script>
+</body>
+</html>
