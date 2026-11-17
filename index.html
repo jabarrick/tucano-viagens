@@ -162,6 +162,12 @@ td.n,th.n{text-align:right}
 @media(prefers-reduced-motion:reduce){.stamp,.pop,.shake{animation:none}}
 .dl{border:1px solid var(--ink);background:#fff;border-radius:99px;padding:1px 10px;font-size:12px;margin-top:3px;color:var(--ink)}
 .dl:hover{background:#fff6cf}
+.sheet{position:fixed;inset:0;z-index:40;background:rgba(9,32,24,.82);display:flex;align-items:center;justify-content:center;padding:12px}
+.sheetIn{background:var(--paper);border-radius:14px;padding:14px;width:min(440px,100%);max-height:100%;overflow-y:auto}
+.sheetIn h2{font-size:18px;margin-bottom:8px}
+.sheetIn img{display:block;width:100%;height:auto;border:1px solid var(--line);-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto}
+.sheetIn .tip{margin:8px 0 0}.sheetIn .tip.warn{color:var(--bad)}
+.sheetIn .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .tabs{display:none}
 #patTop{display:none}
 details#how summary{cursor:pointer;font-weight:700;margin-top:14px}
@@ -922,7 +928,7 @@ hagB:['坚持原价，说几句好话','Hold the price, with charm','Manter o pr
 hagC:['原价，但送一杯迎宾 caipirinha','Full price, plus a welcome caipirinha','Preço cheio, com caipirinha de boas-vindas'],hagCs:['稳妥，每位客人从你的提成里扣 US$ 4','safe, costs US$ 4 of your commission per traveller','seguro, custa US$ 4 da sua comissão por pessoa'],
 partial:['不完全合适：客人只肯按九折成交。','Not quite the right fit: they only take it at 10% off.','Não era bem isso: só fecha com 10% de desconto.'],upBad:['推销了客人明说不要的东西，口碑 −1 ★','You pitched something they said they didn’t want. Rating −1 ★','Você ofereceu o que o cliente disse que não queria. Avaliação −1 ★'],
 hagMeA:['给您打个 95 折。','I can take 5% off for you.','Faço 5% de desconto.'],hagMeB:['这已经是最实在的价了，您去了就知道值。','This is already our best price. You’ll see it’s worth it.','Já é o melhor preço. Você vai ver que vale.'],hagMeC:['价格不能动，但迎宾的 caipirinha 算我的。','I can’t move on price, but the welcome caipirinha is on me.','No preço não mexo, mas a caipirinha de boas-vindas é por minha conta.'],
-dl:['下载 PNG','Download PNG','Baixar PNG'],dlOk:['明信片已保存','Postcard saved','Postal salvo'],dlNo:['这里无法保存文件','Saving isn’t available here','Não dá para salvar aqui'],
+dl:['下载 PNG','Download PNG','Baixar PNG'],saveT:['保存明信片','Save postcard','Salvar postal'],saveHint:['长按图片，选择「保存图片」或「存储到照片」。','Press and hold the picture, then choose “Save image” or “Add to Photos”.','Toque e segure a imagem e escolha “Salvar imagem” ou “Adicionar às Fotos”.'],fbHint:['在 Facebook 里打开时，长按可能没反应：点右上角 ⋯，选「在外部浏览器中打开」后再保存。','Inside Facebook, holding the picture may do nothing: tap ⋯ at the top right, choose “Open in external browser”, then save.','Dentro do Facebook, segurar a imagem pode não funcionar: toque em ⋯ no canto superior direito, escolha “Abrir no navegador” e salve.'],shareB:['保存到手机 / 分享','Save to phone / Share','Salvar no celular / Compartilhar'],fileB:['下载文件','Download file','Baixar arquivo'],close:['关闭','Close','Fechar'],shareNo:['分享没有成功，试试长按图片保存','Sharing didn’t work. Try holding the picture to save it','Não deu para compartilhar. Segure a imagem para salvar'],dlOk:['明信片已保存','Postcard saved','Postal salvo'],dlNo:['这里无法保存文件','Saving isn’t available here','Não dá para salvar aqui'],
 album:['明信片册与成就','Postcard album and achievements','Álbum de postais e conquistas'],albumSub:['每卖出一个新目的地，就收到一张明信片，收到的可以下载。已收集 {N} / 33。','Every new destination you sell earns a postcard you can download. Collected: {N} / 33.','Cada destino novo vendido rende um postal que você pode baixar. Coleção: {N} / 33.'],
 newCard:['新明信片：{P}','New postcard: {P}','Novo postal: {P}'],achT:['成就','Achievements','Conquistas'],achNew:['成就解锁：{A}','Achievement unlocked: {A}','Conquista: {A}']
 };
@@ -1297,12 +1303,36 @@ function toPNG(svg){return new Promise((res,rej)=>{
   const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'})),im=new Image();
   im.onload=()=>{try{const c=document.createElement('canvas');c.width=1800;c.height=1300;c.getContext('2d').drawImage(im,0,0,1800,1300);URL.revokeObjectURL(url);c.toBlob(b=>b?res(b):rej(new Error('png')),'image/png')}catch(e){rej(e)}};
   im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('img'))};im.src=url})}
+const TOUCH=matchMedia('(pointer:coarse)').matches||navigator.maxTouchPoints>0;
+const INAPP=/FBAN|FBAV|FB_IAB|FBIOS|Instagram|Messenger|Line\/|MicroMessenger/i.test(navigator.userAgent);
+const toDataURL=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(b)});
+function anchorSave(href,filename){const a=document.createElement('a');a.href=href;a.download=filename;a.rel='noopener';document.body.appendChild(a);a.click();a.remove()}
 async function savePost(id){
-  const svg=postcardSVG(id);let data,ext='png';
-  try{data=await toPNG(svg)}catch(e){data=svg;ext='svg'}
+  const svg=postcardSVG(id);let blob,ext='png';
+  try{blob=await toPNG(svg)}catch(e){blob=new Blob([svg],{type:'image/svg+xml'});ext='svg'}
   const filename='tucano-1992-'+id+'.'+ext;
-  if(DL){try{await DL.save({filename,data});toast(T(U.dlOk))}catch(e){if(!e||e.code!=='declined')toast(T(U.dlNo))}return}
-  try{const b=data instanceof Blob?data:new Blob([data],{type:'image/svg+xml'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}catch(e){toast(T(U.dlNo))}
+  if(DL){try{await DL.save({filename,data:blob});toast(T(U.dlOk));return}catch(e){if(e&&e.code==='declined')return}}
+  if(!TOUCH&&!INAPP){try{const u=URL.createObjectURL(blob);anchorSave(u,filename);setTimeout(()=>URL.revokeObjectURL(u),4000);return}catch(e){}}
+  saveSheet(blob,filename,id);
+}
+/* phones and in-app browsers often ignore download links: show the picture with a share button and a long-press hint */
+async function saveSheet(blob,filename,id){
+  let src;try{src=await toDataURL(blob)}catch(e){src=URL.createObjectURL(blob)}
+  const file=(()=>{try{return new File([blob],filename,{type:blob.type})}catch(e){return null}})();
+  const canShare=!!(file&&navigator.canShare&&(()=>{try{return navigator.canShare({files:[file]})}catch(e){return false}})());
+  const o=document.createElement('div');o.className='sheet';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label',T(U.saveT));
+  o.innerHTML='<div class="sheetIn"><h2>'+T(U.saveT)+'</h2><img alt="'+PKI[id].name+'" src="'+src+'"><p class="tip">'+T(U.saveHint)+'</p>'+(INAPP?'<p class="tip warn">'+T(U.fbHint)+'</p>':'')+
+    '<div class="acts">'+(canShare?'<button class="btn pri" data-s="share">'+T(U.shareB)+'</button>':'')+'<button class="btn" data-s="file">'+T(U.fileB)+'</button><button class="btn" data-s="close">'+T(U.close)+'</button></div></div>';
+  const close=()=>{o.remove();document.removeEventListener('keydown',esc)},esc=e=>{if(e.key==='Escape')close()};
+  o.addEventListener('click',e=>{
+    if(e.target===o)return close();
+    const k=e.target.closest('[data-s]');if(!k)return;
+    if(k.dataset.s==='close')close();
+    else if(k.dataset.s==='file')anchorSave(src,filename);
+    else navigator.share({files:[file],title:PKI[id].name}).then(()=>{toast(T(U.dlOk));close()}).catch(err=>{if(!err||err.name!=='AbortError')toast(T(U.shareNo))});
+  });
+  document.addEventListener('keydown',esc);document.body.appendChild(o);
+  const f=o.querySelector('[data-s]');if(f)f.focus();
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-dl]');if(b)savePost(b.dataset.dl)});
 
